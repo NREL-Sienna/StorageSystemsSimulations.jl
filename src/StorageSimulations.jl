@@ -81,6 +81,7 @@ using DocStringExtensions
 # Includes
 # Core components
 include("core/formulations.jl")
+include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/parameters.jl")
 include("core/optimization_container.jl")
@@ -89,5 +90,7 @@ include("device_models/storage_constructor.jl")
 include("device_models/storage.jl")
 include("device_models/add_to_expressions.jl")
 include("device_models/objective_function.jl")
+
+include("services_models/services_constructor.jl")
 
 end

@@ -8,8 +8,6 @@ PSI.proportional_cost(cost::PSY.StorageManagementCost, ::PSI.EnergyShortageVaria
 
 PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::EnergyTargetAncillaryServices)=PSY.get_variable(cost)
 
-PSI.objective_function_multiplier(::PSI.EnergySurplusVariable, ::EnergyTargetAncillaryServices)=PSI.OBJECTIVE_FUNCTION_NEGATIVE
-PSI.objective_function_multiplier(::PSI.EnergyShortageVariable, ::EnergyTargetAncillaryServices)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 
 PSI.get_expression_type_for_reserve(::PSI.ActivePowerReserveVariable, ::Type{<:PSY.Storage}, ::Type{<:PSY.Reserve{PSY.ReserveUp}}) = [PSI.ReserveRangeExpressionUB, ReserveEnergyExpressionUB]
 PSI.get_expression_type_for_reserve(::PSI.ActivePowerReserveVariable, ::Type{<:PSY.Storage}, ::Type{<:PSY.Reserve{PSY.ReserveDown}}) = [PSI.ReserveRangeExpressionLB, ReserveEnergyExpressionLB]
@@ -20,7 +18,7 @@ PSI.get_multiplier_value(
     ::EnergyValueTimeSeriesParameter,
     d::PSY.Storage,
     ::PSI.AbstractStorageFormulation,
-) = 1.0
+) = PSI.OBJECTIVE_FUNCTION_NEGATIVE
 
 PSI.get_multiplier_value(
     ::PSI.EnergyTargetTimeSeriesParameter,
@@ -50,7 +48,7 @@ end
 
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
-    ::Type{PSI.ReserveEnergyConstraint},
+    ::Type{ReserveEnergyConstraint},
     devices::IS.FlattenIteratorWrapper{T},
     model::PSI.DeviceModel{T, D},
     ::Type{<:PM.AbstractPowerModel},
@@ -62,7 +60,7 @@ function PSI.add_constraints!(
     names = [PSY.get_name(x) for x in devices]
     con_up = PSI.add_constraints_container!(
         container,
-        PSI.ReserveEnergyConstraint(),
+        ReserveEnergyConstraint(),
         T,
         names,
         time_steps,
@@ -70,7 +68,7 @@ function PSI.add_constraints!(
     )
     con_dn = PSI.add_constraints_container!(
         container,
-        PSI.ReserveEnergyConstraint(),
+        ReserveEnergyConstraint(),
         T,
         names,
         time_steps,

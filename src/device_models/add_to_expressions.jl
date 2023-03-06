@@ -54,7 +54,7 @@ function PSI.add_to_expression!(
 ) where {
     T <: Union{PSI.ActivePowerRangeExpressionLB, PSI.ReserveRangeExpressionLB},
     U <: PSI.VariableType,
-    V <: PSY.Component,
+    V <: PSY.Storage,
     X <: PSY.Reserve{PSY.ReserveDown},
     W <: PSI.AbstractReservesFormulation,
 }
@@ -89,7 +89,7 @@ function PSI.add_to_expression!(
     service_name = PSI.get_service_name(model)
     time_frame = PSY.get_time_frame(service)
     # need to confirm that the  time frame is in min ? 
-    time_delta = time_frame / PSI._get_minutes_per_period(container)
+    # time_delta = time_frame / PSI._get_minutes_per_period(container)
     variable = PSI.get_variable(container, U(), X, service_name)
     if !PSI.has_container_key(container, T, V)
         PSI.add_expressions!(container, T, devices, model)
@@ -97,7 +97,7 @@ function PSI.add_to_expression!(
     expression = PSI.get_expression(container, T(), V)
     for d in devices, t in PSI.get_time_steps(container)
         name = PSY.get_name(d)
-        PSI._add_to_jump_expression!(expression[name, t], variable[name, t], time_delta)
+        PSI._add_to_jump_expression!(expression[name, t], variable[name, t], 1.0)
     end
     return
 end
@@ -108,7 +108,7 @@ function PSI.add_to_expression!(
     ::Type{U},
     model::PSI.ServiceModel{V, W},
     devices_template::Dict{Symbol, PSI.DeviceModel},
-) where {U <: PSI.ActivePowerReserveVariable, V <: PSY.Reserve, W <: PSI.AbstractReservesFormulation}
+) where {U <: PSI.ActivePowerReserveVariable, V <: PSY.Reserve, W <: PSI.RangeReserve}
     contributing_devices_map = PSI.get_contributing_devices_map(model)
     for (device_type, devices) in contributing_devices_map
         device_model = get(devices_template, Symbol(device_type), nothing)

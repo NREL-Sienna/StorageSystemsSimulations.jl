@@ -92,10 +92,10 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
-    objective_function!(container, devices, model, S)
+    # objective_function!(container, devices, model, S)
     add_constraint_dual!(container, sys, model)
     return
 end
@@ -177,10 +177,10 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
-    objective_function!(container, devices, model, S)
+    # objective_function!(container, devices, model, S)
     add_constraint_dual!(container, sys, model)
     return
 end
@@ -267,7 +267,7 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyTargetConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
     objective_function!(container, devices, model, S)
@@ -372,7 +372,7 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
     objective_function!(container, devices, model, S)
@@ -459,7 +459,7 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
     objective_function!(container, devices, model, S)
@@ -562,7 +562,7 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
     objective_function!(container, devices, model, S)
@@ -647,7 +647,7 @@ function construct_device!(
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, S)
     add_feedforward_constraints!(container, model, devices)
     if has_service_model(model)
-        add_constraints!(container, PSI.ReserveEnergyConstraint, devices, model, S)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, S)
         add_constraints!(container, PSI.RangeLimitConstraint, devices, model, S)
     end
     objective_function!(container, devices, model, S)

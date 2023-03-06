@@ -10,14 +10,15 @@ function PSI._add_variable_cost_to_objective!(
     @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
     time_steps = PSI.get_time_steps(container)
     base_power = PSI.get_base_power(container)
-    param = PSI.get_parameter_array(container, EnergyValueTimeSeriesParameter(), U)
+    param = PSI.get_parameter(container, EnergyValueTimeSeriesParameter(), U)
     multiplier =
         PSI.get_parameter_multiplier_array(container, EnergyValueTimeSeriesParameter(), U)
 
     for t in time_steps
+        _param = PSI.get_parameter_column_values(param, component_name)
         variable = PSI.get_variable(container, T(), U)[component_name, t]
         lin_cost =
-            variable * param[component_name, t] * multiplier[component_name, t] * base_power
+            variable * _param[t] * multiplier[component_name, t] * base_power
         PSI.add_to_objective_variant_expression!(container, lin_cost)
     end
 
