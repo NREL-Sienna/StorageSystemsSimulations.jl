@@ -1,5 +1,14 @@
 using Test
-import Logging
+using PowerSystemCaseBuilder
+using StorageSystemsSimulations
+using Logging
+using InfrastructureSystems
+using PowerSimulations
+using PowerSystems
+
+const IS = InfrastructureSystems
+const PSY = PowerSystems
+const PSB = PowerSystemCaseBuilder
 
 import Aqua
 Aqua.test_unbound_args(StorageSystemsSimulations)
@@ -8,7 +17,7 @@ Aqua.test_ambiguities(StorageSystemsSimulations)
 Aqua.test_stale_deps(StorageSystemsSimulations)
 Aqua.test_deps_compat(StorageSystemsSimulations)
 
-LOG_FILE = "power-systems.log"
+LOG_FILE = "storage-systems-simulations.log"
 LOG_LEVELS = Dict(
     "Debug" => Logging.Debug,
     "Info" => Logging.Info,

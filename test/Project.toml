@@ -1,6 +1,10 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+InfrastructureSystems = "2cd47ed4-ca9b-11e9-27f2-ab636a7671f1"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+PowerSimulations = "e690365d-45e2-57bb-ac84-44ba829e73c4"
+PowerSystemCaseBuilder = "f00506e0-b84f-492a-93c2-c0a9afc4364e"
+StorageSystemsSimulations = "e2f1a126-19d0-4674-9252-42b2384f8e3c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]

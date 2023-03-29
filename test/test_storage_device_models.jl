@@ -1,6 +1,3 @@
-# Put your tests here
-@test 1 == 1
-
 @testset "BatteryEMS with EnergyValue with DC - PF" begin
     device_model = DeviceModel(GenericBattery, EnergyValue)
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_batt_energy_value")
