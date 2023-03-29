@@ -1,18 +1,46 @@
 
-PSI.objective_function_multiplier(::PSI.EnergySurplusVariable, ::EnergyTargetAncillaryServices)=PSI.OBJECTIVE_FUNCTION_NEGATIVE
-PSI.objective_function_multiplier(::PSI.EnergyShortageVariable, ::EnergyTargetAncillaryServices)=PSI.OBJECTIVE_FUNCTION_POSITIVE
-PSI.objective_function_multiplier(::PSI.EnergyVariable, ::EnergyValue)=PSI.OBJECTIVE_FUNCTION_NEGATIVE
+PSI.objective_function_multiplier(
+    ::PSI.EnergySurplusVariable,
+    ::EnergyTargetAncillaryServices,
+) = PSI.OBJECTIVE_FUNCTION_NEGATIVE
+PSI.objective_function_multiplier(
+    ::PSI.EnergyShortageVariable,
+    ::EnergyTargetAncillaryServices,
+) = PSI.OBJECTIVE_FUNCTION_POSITIVE
+PSI.objective_function_multiplier(::PSI.EnergyVariable, ::EnergyValue) =
+    PSI.OBJECTIVE_FUNCTION_NEGATIVE
 
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::PSI.EnergySurplusVariable, ::PSY.Storage, ::EnergyTargetAncillaryServices)=PSY.get_energy_surplus_cost(cost)
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::PSI.EnergyShortageVariable, ::PSY.Storage, ::EnergyTargetAncillaryServices)=PSY.get_energy_shortage_cost(cost)
+PSI.proportional_cost(
+    cost::PSY.StorageManagementCost,
+    ::PSI.EnergySurplusVariable,
+    ::PSY.Storage,
+    ::EnergyTargetAncillaryServices,
+) = PSY.get_energy_surplus_cost(cost)
+PSI.proportional_cost(
+    cost::PSY.StorageManagementCost,
+    ::PSI.EnergyShortageVariable,
+    ::PSY.Storage,
+    ::EnergyTargetAncillaryServices,
+) = PSY.get_energy_shortage_cost(cost)
 
-PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::EnergyTargetAncillaryServices)=PSY.get_variable(cost)
+PSI.variable_cost(
+    cost::PSY.StorageManagementCost,
+    ::PSI.ActivePowerOutVariable,
+    ::PSY.Storage,
+    ::EnergyTargetAncillaryServices,
+) = PSY.get_variable(cost)
 
-
-PSI.get_expression_type_for_reserve(::PSI.ActivePowerReserveVariable, ::Type{<:PSY.Storage}, ::Type{<:PSY.Reserve{PSY.ReserveUp}}) = [PSI.ReserveRangeExpressionUB, ReserveEnergyExpressionUB]
-PSI.get_expression_type_for_reserve(::PSI.ActivePowerReserveVariable, ::Type{<:PSY.Storage}, ::Type{<:PSY.Reserve{PSY.ReserveDown}}) = [PSI.ReserveRangeExpressionLB, ReserveEnergyExpressionLB]
+PSI.get_expression_type_for_reserve(
+    ::PSI.ActivePowerReserveVariable,
+    ::Type{<:PSY.Storage},
+    ::Type{<:PSY.Reserve{PSY.ReserveUp}},
+) = [PSI.ReserveRangeExpressionUB, ReserveEnergyExpressionUB]
+PSI.get_expression_type_for_reserve(
+    ::PSI.ActivePowerReserveVariable,
+    ::Type{<:PSY.Storage},
+    ::Type{<:PSY.Reserve{PSY.ReserveDown}},
+) = [PSI.ReserveRangeExpressionLB, ReserveEnergyExpressionLB]
 #! format: on
-
 
 PSI.get_multiplier_value(
     ::EnergyValueTimeSeriesParameter,
@@ -25,7 +53,6 @@ PSI.get_multiplier_value(
     d::PSY.Storage,
     ::PSI.AbstractStorageFormulation,
 ) = PSY.get_rating(d)
-
 
 function PSI.get_default_time_series_names(
     ::Type{D},
@@ -45,7 +72,6 @@ function PSI.get_default_time_series_names(
     )
 end
 
-
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{ReserveEnergyConstraint},
@@ -56,7 +82,7 @@ function PSI.add_constraints!(
     time_steps = PSI.get_time_steps(container)
     var_e = PSI.get_variable(container, PSI.EnergyVariable(), T)
     expr_up = PSI.get_expression(container, PSI.ReserveRangeExpressionUB(), T)
-    expr_dn = PSI.get_expression(container,  PSI.ReserveRangeExpressionLB(), T)
+    expr_dn = PSI.get_expression(container, PSI.ReserveRangeExpressionLB(), T)
     names = [PSY.get_name(x) for x in devices]
     con_up = PSI.add_constraints_container!(
         container,
@@ -137,7 +163,6 @@ function PSI.add_constraints!(
     end
     return
 end
-
 
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,

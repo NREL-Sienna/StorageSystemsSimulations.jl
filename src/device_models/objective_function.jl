@@ -17,8 +17,7 @@ function PSI._add_variable_cost_to_objective!(
     for t in time_steps
         _param = PSI.get_parameter_column_values(param, component_name)
         variable = PSI.get_variable(container, T(), U)[component_name, t]
-        lin_cost =
-            variable * _param[t] * multiplier[component_name, t] * base_power
+        lin_cost = variable * _param[t] * multiplier[component_name, t] * base_power
         PSI.add_to_objective_variant_expression!(container, lin_cost)
     end
 
@@ -52,7 +51,7 @@ function PSI._add_variable_cost_to_objective!(
         eltype(variable_cost_forecast_values),
     )
     pwl_cost_expressions =
-    PSI._add_pwl_term!(container, component, variable_cost_forecast_values, T(), V())
+        PSI._add_pwl_term!(container, component, variable_cost_forecast_values, T(), V())
     jump_model = PSI.get_jump_model(container)
     for t in time_steps
         PSI.set_parameter!(

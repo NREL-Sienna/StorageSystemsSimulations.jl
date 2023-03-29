@@ -71,7 +71,6 @@ function PSI.add_to_expression!(
     return
 end
 
-
 function PSI.add_to_expression!(
     container::PSI.OptimizationContainer,
     ::Type{T},

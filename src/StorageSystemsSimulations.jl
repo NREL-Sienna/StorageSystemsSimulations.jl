@@ -1,4 +1,4 @@
-module StorageSimulations
+module StorageSystemsSimulations
 export StorageDispatch
 export EnergyTargetAncillaryServices
 export EnergyValue
@@ -18,15 +18,17 @@ import MathOptInterface
 import ParameterJuMP
 import LinearAlgebra
 
-# importing SIIP Packages 
+# importing SIIP Packages
 import InfrastructureSystems
 import PowerSystems
 import PowerSimulations
 import PowerModels
-import PowerSimulations: OptimizationContainer, 
+import PowerSimulations:
+    OptimizationContainer,
     ArgumentConstructStage,
     ModelConstructStage,
     DeviceModel,
+    NetworkModel,
     construct_device!,
     add_variables!,
     add_parameters!,
@@ -41,7 +43,6 @@ import PowerSimulations: OptimizationContainer,
     initial_conditions!,
     has_service_model,
     get_attribute
-
 
 # TimeStamp Management Imports
 import Dates

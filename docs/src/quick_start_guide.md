@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-PowerSystems.jl is structured to enable data creation scripts, flexible interfaces for data
+StorageSystemsSimulations.jl is structured to enable data creation scripts, flexible interfaces for data
 intake and extension of the data model. These features are enabled through three main features:
 
 - [Abstract type hierarchy](@ref type_structure),
@@ -30,13 +30,13 @@ More details about parsing text files from different formats in [this section](@
 
 -----
 
-## Using `PowerSystems.jl` for modeling
+## Using `StorageSystemsSimulations.jl` for modeling
 
 This example function implements a function where the modeler can choose the technology
 by its type and use the different implementations of [`get_max_active_power`](@ref). **Using
 the "dot" access to get a parameter value from a device is actively discouraged, use "getter" functions instead**
 
-Refer to [Modeling with JuMP](@ref modeling_with_jump) for a more detailed use of `PowerSystems.jl` to develop
+Refer to [Modeling with JuMP](@ref modeling_with_jump) for a more detailed use of `StorageSystemsSimulations.jl` to develop
 a model
 
 ```@example generated_quick_start_guide
@@ -71,7 +71,7 @@ installed_capacity(system_data; technology = RenewableGen)
 
 ## Adding Time Series data to a `System`
 
-`PowerSystems.jl` provides interfaces to augment the data sets already created. You can also
+`StorageSystemsSimulations.jl` provides interfaces to augment the data sets already created. You can also
 add time series data to a system from one or more CSV files, more
 details in [`Time Series Data`](@ref ts_data). This example implements
 [`SingleTimeSeries`](https://nrel-siip.github.io/InfrastructureSystems.jl/stable/InfrastructureSystems/#InfrastructureSystems.SingleTimeSeries)
