@@ -18,7 +18,13 @@ function PSI.construct_service!(
         contributing_devices,
         PSI.RangeReserve(),
     )
-    PSI.add_to_expression!(container, service, PSI.ActivePowerReserveVariable, model, devices_template)
+    PSI.add_to_expression!(
+        container,
+        service,
+        PSI.ActivePowerReserveVariable,
+        model,
+        devices_template,
+    )
     PSI.add_feedforward_arguments!(container, model, service)
     return
 end
@@ -42,7 +48,13 @@ function PSI.construct_service!(
         contributing_devices,
         PSI.RangeReserve(),
     )
-    PSI.add_to_expression!(container, service, PSI.ActivePowerReserveVariable, model, devices_template)
+    PSI.add_to_expression!(
+        container,
+        service,
+        PSI.ActivePowerReserveVariable,
+        model,
+        devices_template,
+    )
     PSI.add_feedforward_arguments!(container, model, service)
     return
 end
@@ -58,7 +70,12 @@ function PSI.construct_service!(
     name = get_service_name(model)
     service = PSY.get_component(SR, sys, name)
     contributing_devices = PSI.get_contributing_devices(model)
-    PSI.add_variable!(container, PSI.ServiceRequirementVariable(), [service], PSI.StepwiseCostReserve())
+    PSI.add_variable!(
+        container,
+        PSI.ServiceRequirementVariable(),
+        [service],
+        PSI.StepwiseCostReserve(),
+    )
     PSI.add_variables!(
         container,
         PSI.ActivePowerReserveVariable,
@@ -66,7 +83,13 @@ function PSI.construct_service!(
         contributing_devices,
         PSI.StepwiseCostReserve(),
     )
-    PSI.add_to_expression!(container, service, ActivePowerReserveVariable, model, devices_template)
+    PSI.add_to_expression!(
+        container,
+        service,
+        ActivePowerReserveVariable,
+        model,
+        devices_template,
+    )
     PSI.add_expressions!(container, ProductionCostExpression, [service], model)
     return
 end
@@ -91,7 +114,13 @@ function PSI.construct_service!(
         contributing_devices,
         PSI.RampReserve(),
     )
-    PSI.add_to_expression!(container, service, PSI.ActivePowerReserveVariable, model, devices_template)
+    PSI.add_to_expression!(
+        container,
+        service,
+        PSI.ActivePowerReserveVariable,
+        model,
+        devices_template,
+    )
     PSI.add_feedforward_arguments!(container, model, service)
     return
 end

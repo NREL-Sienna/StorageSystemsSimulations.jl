@@ -1,4 +1,4 @@
-module StorageSimulations
+module StorageSystemsSimulations
 export StorageDispatch
 export EnergyTargetAncillaryServices
 export EnergyValue
@@ -6,27 +6,25 @@ export EnergyValueCurve
 
 #################################################################################
 # Imports
-import DataStructures: OrderedDict, Deque, SortedDict
 import Logging
-import Serialization
 # Modeling Imports
 import JuMP
 # so that users do not need to import JuMP to use a solver with PowerModels
 import JuMP: optimizer_with_attributes
 import JuMP.Containers: DenseAxisArray, SparseAxisArray
-import MathOptInterface
-import ParameterJuMP
 import LinearAlgebra
 
-# importing SIIP Packages 
+# importing SIIP Packages
 import InfrastructureSystems
 import PowerSystems
 import PowerSimulations
 import PowerModels
-import PowerSimulations: OptimizationContainer, 
+import PowerSimulations:
+    OptimizationContainer,
     ArgumentConstructStage,
     ModelConstructStage,
     DeviceModel,
+    NetworkModel,
     construct_device!,
     add_variables!,
     add_parameters!,
@@ -42,13 +40,8 @@ import PowerSimulations: OptimizationContainer,
     has_service_model,
     get_attribute
 
-
 # TimeStamp Management Imports
 import Dates
-import TimeSeries
-
-# I/O Imports
-import DataFrames
 
 ################################################################################
 
@@ -57,11 +50,6 @@ const PM = PowerModels
 const PSY = PowerSystems
 const PSI = PowerSimulations
 const IS = InfrastructureSystems
-const MOI = MathOptInterface
-const MOIU = MathOptInterface.Utilities
-const PJ = ParameterJuMP
-const MOPFM = MOI.FileFormats.Model
-const TS = TimeSeries
 
 ################################################################################
 
@@ -71,13 +59,6 @@ function progress_meter_enabled()
            (get(ENV, "RUNNING_PSI_TESTS", nothing) != "true")
 end
 
-using DocStringExtensions
-
-@template DEFAULT = """
-                    $(TYPEDSIGNATURES)
-                    $(DOCSTRING)
-                    $(METHODLIST)
-                    """
 # Includes
 # Core components
 include("core/formulations.jl")

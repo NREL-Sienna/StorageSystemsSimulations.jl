@@ -1,21 +1,29 @@
 using Test
-import Logging
+using PowerSystemCaseBuilder
+using StorageSystemsSimulations
+using Logging
+using InfrastructureSystems
+using PowerSimulations
+using PowerSystems
+
+const IS = InfrastructureSystems
+const PSY = PowerSystems
+const PSB = PowerSystemCaseBuilder
 
 import Aqua
-Aqua.test_unbound_args(SIIP-PACKAGE)
-Aqua.test_undefined_exports(SIIP-PACKAGE)
-Aqua.test_ambiguities(SIIP-PACKAGE)
-Aqua.test_stale_deps(SIIP-PACKAGE)
-Aqua.test_deps_compat(SIIP-PACKAGE)
+Aqua.test_unbound_args(StorageSystemsSimulations)
+Aqua.test_undefined_exports(StorageSystemsSimulations)
+Aqua.test_ambiguities(StorageSystemsSimulations)
+Aqua.test_stale_deps(StorageSystemsSimulations)
+Aqua.test_deps_compat(StorageSystemsSimulations)
 
-LOG_FILE = "power-systems.log"
+LOG_FILE = "storage-systems-simulations.log"
 LOG_LEVELS = Dict(
     "Debug" => Logging.Debug,
     "Info" => Logging.Info,
     "Warn" => Logging.Warn,
     "Error" => Logging.Error,
 )
-
 
 """
 Copied @includetests from https://github.com/ssfrr/TestSetExtensions.jl.
@@ -70,9 +78,9 @@ function run_tests()
         config = IS.LoggingConfiguration(logging_config_filename)
     else
         config = IS.LoggingConfiguration(;
-            filename = LOG_FILE,
-            file_level = Logging.Info,
-            console_level = Logging.Error,
+            filename=LOG_FILE,
+            file_level=Logging.Info,
+            console_level=Logging.Error,
         )
     end
     console_logger = ConsoleLogger(config.console_stream, config.console_level)
@@ -88,7 +96,7 @@ function run_tests()
         end
 
         # Testing Topological components of the schema
-        @time @testset "Begin SIIP-PACKAGE tests" begin
+        @time @testset "Begin StorageSystemsSimulations tests" begin
             @includetests ARGS
         end
 

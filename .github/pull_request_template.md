@@ -1,3 +1,3 @@
-Thanks for opening a PR to SIIP-PACKAGE.jl, please take note of the following when making a PR:
+Thanks for opening a PR to StorageSystemsSimulations.jl, please take note of the following when making a PR:
 
-Check the [contributor guidelines](https://nrel-siip.github.io/SIIP-PACKAGE.jl/stable/code_base_developer_guide/developer/)
+Check the [contributor guidelines](https://nrel-siip.github.io/StorageSystemsSimulations.jl/stable/code_base_developer_guide/developer/)
