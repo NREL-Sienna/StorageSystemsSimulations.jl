@@ -3,13 +3,22 @@
 ```@meta
 CurrentModule = StorageSystemsSimulations
 ```
+## Installation
 
-## Overview
+The latest stable release of PowerModels can be installed using the Julia package manager with
 
-`StorageSystemsSimulations.jl` is a [`Julia`](http://www.julialang.org) package that provides a rigorous
-data model using Julia structures to enable storage modeling and simulations.
+```julia
+] add StorageSystemsSimulations
+```
 
-* * *
+For the current development version, "checkout" this package with
 
-StorageSystemsSimulations has been developed as part of ... at the U.S. Department of Energy's National Renewable Energy
+```julia
+] add StorageSystemsSimulations#master
+```
+
+An appropriate optimization solver is required for running PowerSimulations models. Refer to [`JuMP.jl` solver's page](https://jump.dev/JuMP.jl/stable/installation/#Install-a-solver) to select the most appropriate for the application of interest.
+
+------------
+PowerSystems has been developed as part of the ..... at the U.S. Department of Energy's National Renewable Energy
 Laboratory ([NREL](https://www.nrel.gov/)).
