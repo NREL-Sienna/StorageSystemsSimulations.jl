@@ -69,7 +69,7 @@ include("core/formulations.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/parameters.jl")
-include("core/optimization_container.jl")
+
 # device models
 include("device_models/storage_constructor.jl")
 include("device_models/storage.jl")
