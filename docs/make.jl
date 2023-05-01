@@ -24,7 +24,7 @@ makedocs(;
 )
 
 deploydocs(;
-    repo = "github.com/NREL-SIIP/StorageSystemsSimulations.jl.git",
+    repo = "github.com/NREL-Sienna/StorageSystemsSimulations.jl.git",
     target = "build",
     branch = "gh-pages",
     devbranch = "master",
