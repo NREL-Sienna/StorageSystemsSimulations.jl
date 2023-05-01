@@ -1,35 +1,35 @@
-# PowerSimulations
+# StorageSystemsSimulations
 
 ```@meta
-CurrentModule = PowerSimulations
+CurrentModule = StorageSystemsSimulations
 DocTestSetup  = quote
-    using PowerSimulations
+    using StorageSystemsSimulations
 end
 ```
 
 API documentation
 
 ```@contents
-Pages = ["PowerSimulations.md"]
+Pages = ["StorageSystemsSimulations.md"]
 ```
 
 ## Index
 
 ```@index
-Pages = ["PowerSimulations.md"]
+Pages = ["StorageSystemsSimulations.md"]
 ```
 
 ## Exported
 
 ```@autodocs
-Modules = [PowerSimulations]
+Modules = [StorageSystemsSimulations]
 Private = false
-Filter = t -> typeof(t) === DataType ? !(t <: Union{PowerSimulations.AbstractDeviceFormulation, PowerSimulations.AbstractServiceFormulation}) : true
+Filter = t -> typeof(t) === DataType ? !(t <: Union{StorageSystemsSimulations.AbstractDeviceFormulation, StorageSystemsSimulations.AbstractServiceFormulation}) : true
 ```
 
 ## Internal
 
 ```@autodocs
-Modules = [PowerSimulations]
+Modules = [StorageSystemsSimulations]
 Public = false
 ```
