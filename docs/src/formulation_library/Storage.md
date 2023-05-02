@@ -10,14 +10,18 @@ using Latexify
 combos = PowerSimulations.generate_device_formulation_combinations()
 filter!(x -> x["device_type"] <: Storage, combos)
 combo_table = DataFrame(
-    "Valid DeviceModel" => ["`DeviceModel($(c["device_type"]), $(c["formulation"]))`" for c in combos],
-    "Device Type" => ["[$(c["device_type"])](https://nrel-sienna.github.io/PowerSystems.jl/stable/model_library/generated_$(c["device_type"])/)" for c in combos],
+    "Valid DeviceModel" =>
+        ["`DeviceModel($(c["device_type"]), $(c["formulation"]))`" for c in combos],
+    "Device Type" => [
+        "[$(c["device_type"])](https://nrel-sienna.github.io/PowerSystems.jl/stable/model_library/generated_$(c["device_type"])/)"
+        for c in combos
+    ],
     "Formulation" => ["[$(c["formulation"])](@ref)" for c in combos],
-    )
-mdtable(combo_table, latex = false)
+)
+mdtable(combo_table, latex=false)
 ```
 
----
+* * *
 
 ## `BookKeeping`
 
@@ -27,29 +31,35 @@ BookKeeping
 
 **Variables:**
 
-- [`ActivePowerInVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `-1 * PowerSystems.get_active_power(device)`
-- [`ActivePowerOutVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_active_power(device)`
-- [`ReactivePowerVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_reactive_power(device)`
-- [`EnergyVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_initial_storage(device)`
-- [`ReservationVariable`](@ref):
-  - only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
-  - Bounds: {0, 1}
-  - Default initial value: 1
+  - [`ActivePowerInVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `-1 * PowerSystems.get_active_power(device)`
+
+  - [`ActivePowerOutVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_active_power(device)`
+  - [`ReactivePowerVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_reactive_power(device)`
+  - [`EnergyVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_initial_storage(device)`
+  - [`ReservationVariable`](@ref):
+    
+      + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
+      + Bounds: {0, 1}
+      + Default initial value: 1
 
 **Static Parameters:**
 
-- ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
-- ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
-- ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
-- ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
+  - ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
+  - ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
+  - ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
+  - ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
 
 **Objective:**
 
@@ -71,7 +81,7 @@ Adds ``Pg`` and ``Qg`` terms to the respective active and reactive power balance
 \end{aligned}
 ```
 
----
+* * *
 
 ## `EnergyTarget`
 
@@ -81,35 +91,43 @@ EnergyTarget
 
 **Variables:**
 
-- [`ActivePowerInVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `-1 * PowerSystems.get_active_power(device)`
-- [`ActivePowerOutVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_active_power(device)`
-- [`ReactivePowerVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_reactive_power(device)`
-- [`EnergyVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_initial_storage(device)`
-- [`EnergyShortageVariable`](@ref):
-  - Bounds: [ , 0.0]
-  - Default initial value: 0.0
-- [`EnergySurplusVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: 0.0
-- [`ReservationVariable`](@ref):
-  - only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
-  - Bounds: {0, 1}
-  - Default initial value: 1
+  - [`ActivePowerInVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `-1 * PowerSystems.get_active_power(device)`
+
+  - [`ActivePowerOutVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_active_power(device)`
+  - [`ReactivePowerVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_reactive_power(device)`
+  - [`EnergyVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_initial_storage(device)`
+  - [`EnergyShortageVariable`](@ref):
+    
+      + Bounds: [ , 0.0]
+      + Default initial value: 0.0
+  - [`EnergySurplusVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: 0.0
+  - [`ReservationVariable`](@ref):
+    
+      + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
+      + Bounds: {0, 1}
+      + Default initial value: 1
 
 **Static Parameters:**
 
-- ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
-- ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
-- ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
-- ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
+  - ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
+  - ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
+  - ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
+  - ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
 
 **Time Series Parameters:**
 
@@ -122,13 +140,13 @@ combos = PowerSimulations.get_default_time_series_names(Storage, EnergyTarget)
 combo_table = DataFrame(
     "Parameter" => map(x -> "[`$x`](@ref)", collect(keys(combos))),
     "Default Time Series Name" => map(x -> "`$x`", collect(values(combos))),
-    )
-mdtable(combo_table, latex = false)
+)
+mdtable(combo_table, latex=false)
 ```
 
 **Objective:**
 
-Creates an objective function term based on the [`VariableCost` Options](@ref) where the quantity term is defined as `` Pg_t``,
+Creates an objective function term based on the [`VariableCost` Options](@ref) where the quantity term is defined as ``Pg_t``,
 and objective function terms for [StorageManagementCost](@ref).
 
 **Expressions:**
@@ -148,7 +166,7 @@ Adds ``Pg`` and ``Qg`` terms to the respective active and reactive power balance
 \end{aligned}
 ```
 
----
+* * *
 
 ## `BatteryAncillaryServices`
 
@@ -158,29 +176,35 @@ BatteryAncillaryServices
 
 **Variables:**
 
-- [`ActivePowerInVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `-1 * PowerSystems.get_active_power(device)`
-- [`ActivePowerOutVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_active_power(device)`
-- [`ReactivePowerVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_reactive_power(device)`
-- [`EnergyVariable`](@ref):
-  - Bounds: [0.0, ]
-  - Default initial value: `PowerSystems.get_initial_storage(device)`
-- [`ReservationVariable`](@ref):
-  - only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
-  - Bounds: {0, 1}
-  - Default initial value: 1
+  - [`ActivePowerInVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `-1 * PowerSystems.get_active_power(device)`
+
+  - [`ActivePowerOutVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_active_power(device)`
+  - [`ReactivePowerVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_reactive_power(device)`
+  - [`EnergyVariable`](@ref):
+    
+      + Bounds: [0.0, ]
+      + Default initial value: `PowerSystems.get_initial_storage(device)`
+  - [`ReservationVariable`](@ref):
+    
+      + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
+      + Bounds: {0, 1}
+      + Default initial value: 1
 
 **Static Parameters:**
 
-- ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
-- ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
-- ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
-- ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
+  - ``Pg^\text{min}`` = `PowerSystems.get_active_power_limits(device).min`
+  - ``Qg^\text{min}`` = `PowerSystems.get_reactive_power_limits(device).min`
+  - ``Qg^\text{max}`` = `PowerSystems.get_reactive_power_limits(device).max`
+  - ``E^\text{max}`` = `PowerSystems.get_storage_capacity(device)`
 
 **Time Series Parameters:**
 
@@ -193,13 +217,13 @@ combos = PowerSimulations.get_default_time_series_names(Storage, EnergyTarget)
 combo_table = DataFrame(
     "Parameter" => map(x -> "[`$x`](@ref)", collect(keys(combos))),
     "Default Time Series Name" => map(x -> "`$x`", collect(values(combos))),
-    )
-mdtable(combo_table, latex = false)
+)
+mdtable(combo_table, latex=false)
 ```
 
 **Objective:**
 
-Creates an objective function term based on the [`VariableCost` Options](@ref) where the quantity term is defined as `` Pg_t``,
+Creates an objective function term based on the [`VariableCost` Options](@ref) where the quantity term is defined as ``Pg_t``,
 and objective function terms for [StorageManagementCost](@ref).
 
 **Expressions:**
