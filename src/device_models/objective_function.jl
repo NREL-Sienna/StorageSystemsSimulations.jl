@@ -28,7 +28,33 @@ function PSI._add_variable_cost_to_objective!(
     container::PSI.OptimizationContainer,
     ::T,
     component::U,
-    op_cost::PSY.MarketBidCost,
+    op_cost::Union{Nothing, PSY.TwoPartCost},
+    ::V,
+) where {T <: PSI.EnergyVariable, U <: PSY.Storage, V <: ChargingValue}
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
+    time_steps = PSI.get_time_steps(container)
+    base_power = PSI.get_base_power(container)
+    param = PSI.get_parameter(container, ChargingValueTimeSeriesParameter(), U)
+    multiplier =
+        PSI.get_parameter_multiplier_array(container, ChargingValueTimeSeriesParameter(), U)
+
+    for t in time_steps
+        _param = PSI.get_parameter_column_values(param, component_name)
+        variable = PSI.get_variable(container, T(), U)[component_name, t]
+        lin_cost =
+            variable * _param[t] * multiplier[component_name, t] * base_power
+        PSI.add_to_objective_variant_expression!(container, lin_cost)
+    end
+
+    return
+end
+
+function PSI._add_variable_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::U,
+    op_cost::DynamicEnergyCost,
     ::V,
 ) where {T <: PSI.EnergyVariable, U <: PSY.Storage, V <: EnergyValueCurve}
     component_name = PSY.get_name(component)
