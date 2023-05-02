@@ -5,10 +5,17 @@ using Logging
 using InfrastructureSystems
 using PowerSimulations
 using PowerSystems
+using JuMP
+using HiGHS
+using GLPK
 
 const IS = InfrastructureSystems
 const PSY = PowerSystems
 const PSB = PowerSystemCaseBuilder
+const PSI = PowerSimulations
+const PM = PSI.PowerModels
+const PNM = PSI.PowerNetworkMatrices
+const MOI = PSI.MathOptInterface
 
 import Aqua
 Aqua.test_unbound_args(StorageSystemsSimulations)
@@ -24,6 +31,19 @@ LOG_LEVELS = Dict(
     "Warn" => Logging.Warn,
     "Error" => Logging.Error,
 )
+
+include("test_utils/mock_operation_models.jl")
+include("test_utils/model_checks.jl")
+include("test_utils/operations_problems_templates.jl")
+
+HiGHS_optimizer = JuMP.optimizer_with_attributes(
+    HiGHS.Optimizer,
+    "time_limit" => 100.0,
+    "log_to_console" => false,
+)
+
+GLPK_optimizer =
+    JuMP.optimizer_with_attributes(GLPK.Optimizer, "msg_lev" => GLPK.GLP_MSG_OFF)
 
 """
 Copied @includetests from https://github.com/ssfrr/TestSetExtensions.jl.
