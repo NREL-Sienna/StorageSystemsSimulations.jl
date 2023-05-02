@@ -1,8 +1,10 @@
 module StorageSystemsSimulations
+
 export StorageDispatch
 export EnergyTargetAncillaryServices
 export EnergyValue
 export EnergyValueCurve
+export DynamicEnergyCost
 
 #################################################################################
 # Imports
@@ -60,11 +62,15 @@ function progress_meter_enabled()
 end
 
 # Includes
+#New structs
+include("descriptors/generated/includes.jl")
+include("descriptors/cost_function_timeseries.jl")
 # Core components
 include("core/formulations.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/parameters.jl")
+include("core/work_arounds.jl")
 include("core/optimization_container.jl")
 # device models
 include("device_models/storage_constructor.jl")

@@ -6,3 +6,4 @@ struct StorageDispatch <: PSI.AbstractStorageFormulation end
 struct EnergyTargetAncillaryServices <: PSI.AbstractEnergyManagement end
 struct EnergyValue <: PSI.AbstractEnergyManagement end
 struct EnergyValueCurve <: PSI.AbstractEnergyManagement end
+struct ChargingValue <: PSI.AbstractEnergyManagement end
