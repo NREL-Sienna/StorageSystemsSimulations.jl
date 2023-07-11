@@ -1,10 +1,15 @@
 module StorageSystemsSimulations
 
+######## Storage Formulations ########
+export StorageDispatchEnergyOnly
 export StorageDispatch
+export EnergyTarget
 export EnergyTargetAncillaryServices
 export EnergyValue
 export EnergyValueCurve
 export DynamicEnergyCost
+export BookKeeping
+export BatteryAncillaryServices
 
 #################################################################################
 # Imports
@@ -67,10 +72,11 @@ include("descriptors/generated/includes.jl")
 include("descriptors/cost_function_timeseries.jl")
 # Core components
 include("core/formulations.jl")
+include("core/variables.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/parameters.jl")
-include("core/optimization_container.jl")
+
 # device models
 include("device_models/storage_constructor.jl")
 include("device_models/storage.jl")
