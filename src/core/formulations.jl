@@ -3,6 +3,11 @@ Formulation type to add storage formulation that respects end of horizon energy 
 with abinary variable to prevent simultanious charging and discharging
 """
 
+struct StorageDispatch <: PSI.AbstractStorageFormulation end
+struct EnergyTargetAncillaryServices <: PSI.AbstractEnergyManagement end
+struct EnergyValue <: PSI.AbstractEnergyManagement end
+struct EnergyValueCurve <: PSI.AbstractEnergyManagement end
+
 ############################ Storage Generation Formulations ###############################
 abstract type AbstractStorageFormulation <: PSI.AbstractDeviceFormulation end
 abstract type AbstractEnergyManagement <: AbstractStorageFormulation end
@@ -41,5 +46,8 @@ To do DOCS
 """
 struct EnergyValueCurve <: AbstractEnergyManagement end
 
+struct ChargingValue <: PSI.AbstractEnergyManagement end
+
 const BookKeeping = StorageDispatchEnergyOnly
 const BatteryAncillaryServices = StorageDispatch
+

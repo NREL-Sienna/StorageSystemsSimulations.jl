@@ -161,6 +161,26 @@ function PSI.get_default_time_series_names(
     )
 end
 
+
+function PSI.get_default_time_series_names(
+    ::Type{D},
+    ::Type{EnergyValue},
+) where {D <: PSY.Storage}
+    return Dict{Type{<:PSI.ParameterType}, String}(
+        EnergyValueTimeSeriesParameter => "energy_value",
+    )
+end
+
+function PSI.get_default_time_series_names(
+    ::Type{D},
+    ::Type{ChargingValue},
+) where {D <: PSY.Storage}
+    return Dict{Type{<:PSI.ParameterType}, String}(
+        ChargingValueTimeSeriesParameter => "energy_value",
+    )
+end
+
+
 ######################## Make initial Conditions for a Model ####################
 
 function initial_conditions!(
@@ -355,13 +375,14 @@ function add_constraints!(
     return
 end
 
+
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{ReserveEnergyConstraint},
     devices::IS.FlattenIteratorWrapper{T},
     model::PSI.DeviceModel{T, D},
-    ::Type{<:PM.AbstractPowerModel},
-) where {T <: PSY.Storage, D <: AbstractStorageFormulation}
+    ::NetworkModel{<:PM.AbstractPowerModel},
+) where {T <: PSY.Storage, D <: PSI.AbstractStorageFormulation}
     time_steps = PSI.get_time_steps(container)
     var_e = PSI.get_variable(container, PSI.EnergyVariable(), T)
     expr_up = PSI.get_expression(container, PSI.ReserveRangeExpressionUB(), T)
@@ -405,8 +426,8 @@ function PSI.add_constraints!(
     ::Type{PSI.RangeLimitConstraint},
     devices::IS.FlattenIteratorWrapper{T},
     model::PSI.DeviceModel{T, D},
-    ::Type{<:PM.AbstractPowerModel},
-) where {T <: PSY.Storage, D <: AbstractStorageFormulation}
+    ::NetworkModel{<:PM.AbstractPowerModel},
+) where {T <: PSY.Storage, D <: PSI.AbstractStorageFormulation}
     time_steps = PSI.get_time_steps(container)
     var_in = PSI.get_variable(container, PSI.ActivePowerInVariable(), T)
     var_out = PSI.get_variable(container, PSI.ActivePowerOutVariable(), T)
@@ -447,6 +468,18 @@ function PSI.add_constraints!(
     return
 end
 
+function objective_function!(
+    container::OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{PSY.Storage},
+    ::DeviceModel{PSY.Storage, T},
+    ::Type{<:PM.AbstractPowerModel},
+) where {T <: EnergyTargetAncillaryServices}
+    add_variable_cost!(container, ActivePowerOutVariable(), devices, T())
+    add_proportional_cost!(container, EnergySurplusVariable(), devices, T())
+    add_proportional_cost!(container, EnergyShortageVariable(), devices, T())
+    return
+end
+
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
@@ -454,6 +487,16 @@ function PSI.objective_function!(
     ::Type{<:PM.AbstractPowerModel},
 ) where {T <: PSY.Storage, S <: EnergyValue}
     PSI.add_variable_cost!(container, PSI.EnergyVariable(), devices, S())
+    return
+end
+
+function PSI.objective_function!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{T},
+    ::DeviceModel{T, S},
+    ::Type{<:PM.AbstractPowerModel},
+) where {T <: PSY.Storage, S <: ChargingValue}
+    PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, S())
     return
 end
 

@@ -1,4 +1,5 @@
 module StorageSystemsSimulations
+
 ######## Storage Formulations ########
 export StorageDispatchEnergyOnly
 export StorageDispatch
@@ -6,6 +7,7 @@ export EnergyTarget
 export EnergyTargetAncillaryServices
 export EnergyValue
 export EnergyValueCurve
+export DynamicEnergyCost
 export BookKeeping
 export BatteryAncillaryServices
 
@@ -65,6 +67,9 @@ function progress_meter_enabled()
 end
 
 # Includes
+#New structs
+include("descriptors/generated/includes.jl")
+include("descriptors/cost_function_timeseries.jl")
 # Core components
 include("core/formulations.jl")
 include("core/variables.jl")
@@ -77,7 +82,5 @@ include("device_models/storage_constructor.jl")
 include("device_models/storage.jl")
 include("device_models/add_to_expressions.jl")
 include("device_models/objective_function.jl")
-
-#include("services_models/services_constructor.jl")
 
 end

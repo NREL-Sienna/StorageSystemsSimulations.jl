@@ -1142,3 +1142,195 @@ function construct_device!(
     add_constraint_dual!(container, sys, model)
     return
 end
+
+
+function construct_device!(
+    container::OptimizationContainer,
+    sys::PSY.System,
+    ::ArgumentConstructStage,
+    model::DeviceModel{St, ChargingValue},
+    network_model::NetworkModel{S},
+) where {St <: PSY.Storage, S <: PM.AbstractPowerModel}
+    devices = get_available_components(St, sys)
+
+    add_variables!(container, PSI.ActivePowerInVariable, devices, ChargingValue())
+    add_variables!(container, PSI.ActivePowerOutVariable, devices, ChargingValue())
+    add_variables!(container, PSI.ReactivePowerVariable, devices, ChargingValue())
+    add_variables!(container, PSI.EnergyVariable, devices, ChargingValue())
+    if get_attribute(model, "reservation")
+        add_variables!(container, PSI.ReservationVariable, devices, ChargingValue())
+    end
+
+    add_parameters!(container, EnergyValueTimeSeriesParameter(), devices, model)
+
+    initial_conditions!(container, devices, PSI.ChargingValue())
+
+    add_expressions!(container, PSI.ProductionCostExpression, devices, model)
+
+    add_to_expression!(
+        container,
+        PSI.ActivePowerBalance,
+        PSI.ActivePowerInVariable,
+        devices,
+        model,
+        network_model,
+    )
+    add_to_expression!(
+        container,
+        PSI.ActivePowerBalance,
+        PSI.ActivePowerOutVariable,
+        devices,
+        model,
+        network_model,
+    )
+    add_to_expression!(
+        container,
+        PSI.ReactivePowerBalance,
+        PSI.ReactivePowerVariable,
+        devices,
+        model,
+        network_model,
+    )
+    if has_service_model(model)
+        add_expressions!(container, PSI.ReserveRangeExpressionLB, devices, model)
+        add_expressions!(container, PSI.ReserveRangeExpressionUB, devices, model)
+        add_expressions!(container, ReserveEnergyExpressionUB, devices, model)
+        add_expressions!(container, ReserveEnergyExpressionLB, devices, model)
+    end
+    add_feedforward_arguments!(container, model, devices)
+    return
+end
+
+function construct_device!(
+    container::OptimizationContainer,
+    sys::PSY.System,
+    ::ModelConstructStage,
+    model::DeviceModel{St, ChargingValue},
+    network_model::NetworkModel{S},
+) where {St <: PSY.Storage, S <: PM.AbstractPowerModel}
+    devices = get_available_components(St, sys)
+
+    add_constraints!(
+        container,
+        PSI.OutputActivePowerVariableLimitsConstraint,
+        PSI.ActivePowerOutVariable,
+        devices,
+        model,
+        network_model
+    )
+    add_constraints!(
+        container,
+        PSI.InputActivePowerVariableLimitsConstraint,
+        PSI.ActivePowerInVariable,
+        devices,
+        model,
+        network_model
+    )
+    add_constraints!(
+        container,
+        PSI.ReactivePowerVariableLimitsConstraint,
+        PSI.ReactivePowerVariable,
+        devices,
+        model,
+        network_model
+    )
+    add_constraints!(container, PSI.EnergyCapacityConstraint, PSI.EnergyVariable, devices, model, network_model)
+
+    # Energy Balanace limits
+    add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, network_model)
+    add_feedforward_constraints!(container, model, devices)
+    if has_service_model(model)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, network_model)
+        add_constraints!(container, PSI.RangeLimitConstraint, devices, model, network_model)
+    end
+    objective_function!(container, devices, model, S)
+    add_constraint_dual!(container, sys, model)
+    return
+end
+
+function construct_device!(
+    container::OptimizationContainer,
+    sys::PSY.System,
+    ::ArgumentConstructStage,
+    model::DeviceModel{St, ChargingValue},
+    network_model::NetworkModel{S},
+) where {St <: PSY.Storage, S <: PM.AbstractActivePowerModel}
+    devices = get_available_components(St, sys)
+
+    add_variables!(container, PSI.ActivePowerInVariable, devices, ChargingValue())
+    add_variables!(container, PSI.ActivePowerOutVariable, devices, ChargingValue())
+    add_variables!(container, PSI.EnergyVariable, devices, ChargingValue())
+    if get_attribute(model, "reservation")
+        add_variables!(container, PSI.ReservationVariable, devices, ChargingValue())
+    end
+
+    add_parameters!(container, EnergyValueTimeSeriesParameter(), devices, model)
+
+    initial_conditions!(container, devices, ChargingValue())
+
+    add_expressions!(container, PSI.ProductionCostExpression, devices, model)
+
+    add_to_expression!(
+        container,
+        PSI.ActivePowerBalance,
+        PSI.ActivePowerInVariable,
+        devices,
+        model,
+        network_model,
+    )
+    add_to_expression!(
+        container,
+        PSI.ActivePowerBalance,
+        PSI.ActivePowerOutVariable,
+        devices,
+        model,
+        network_model,
+    )
+    if has_service_model(model)
+        add_expressions!(container, PSI.ReserveRangeExpressionLB, devices, model)
+        add_expressions!(container, PSI.ReserveRangeExpressionUB, devices, model)
+        add_expressions!(container, ReserveEnergyExpressionUB, devices, model)
+        add_expressions!(container, ReserveEnergyExpressionLB, devices, model)
+    end
+    add_feedforward_arguments!(container, model, devices)
+    return
+end
+
+function construct_device!(
+    container::OptimizationContainer,
+    sys::PSY.System,
+    ::ModelConstructStage,
+    model::DeviceModel{St, ChargingValue},
+    network_model::NetworkModel{S},
+) where {St <: PSY.Storage, S <: PM.AbstractActivePowerModel}
+    devices = get_available_components(St, sys)
+
+    add_constraints!(
+        container,
+        PSI.OutputActivePowerVariableLimitsConstraint,
+        PSI.ActivePowerOutVariable,
+        devices,
+        model,
+        network_model,
+    )
+    add_constraints!(
+        container,
+        PSI.InputActivePowerVariableLimitsConstraint,
+        PSI.ActivePowerInVariable,
+        devices,
+        model,
+        network_model,
+    )
+    add_constraints!(container, PSI.EnergyCapacityConstraint, PSI.EnergyVariable, devices, model, network_model)
+
+    # Energy Balanace limits
+    add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, network_model)
+    add_feedforward_constraints!(container, model, devices)
+    if has_service_model(model)
+        add_constraints!(container, ReserveEnergyConstraint, devices, model, network_model)
+        add_constraints!(container, PSI.RangeLimitConstraint, devices, model, network_model)
+    end
+    objective_function!(container, devices, model, S)
+    add_constraint_dual!(container, sys, model)
+    return
+end
