@@ -161,7 +161,6 @@ function PSI.get_default_time_series_names(
     )
 end
 
-
 function PSI.get_default_time_series_names(
     ::Type{D},
     ::Type{EnergyValue},
@@ -179,7 +178,6 @@ function PSI.get_default_time_series_names(
         ChargingValueTimeSeriesParameter => "energy_value",
     )
 end
-
 
 ######################## Make initial Conditions for a Model ####################
 
@@ -374,7 +372,6 @@ function add_constraints!(
     end
     return
 end
-
 
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,

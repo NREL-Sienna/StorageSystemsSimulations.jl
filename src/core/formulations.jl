@@ -50,4 +50,3 @@ struct ChargingValue <: PSI.AbstractEnergyManagement end
 
 const BookKeeping = StorageDispatchEnergyOnly
 const BatteryAncillaryServices = StorageDispatch
-

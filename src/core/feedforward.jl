@@ -34,9 +34,10 @@ struct HybridEnergyTargetFeedforward <: PSI.AbstractAffectFeedforward
     end
 end
 
-PSI.get_default_parameter_type(::HybridEnergyTargetFeedforward, _) = PSI.EnergyTargetParameter()
-PSI.get_optimization_container_key(ff::HybridEnergyTargetFeedforward) = ff.optimization_container_key
-
+PSI.get_default_parameter_type(::HybridEnergyTargetFeedforward, _) =
+    PSI.EnergyTargetParameter()
+PSI.get_optimization_container_key(ff::HybridEnergyTargetFeedforward) =
+    ff.optimization_container_key
 
 function PSI.add_feedforward_arguments!(
     container::PSI.OptimizationContainer,
@@ -48,11 +49,20 @@ function PSI.add_feedforward_arguments!(
     source_key = PSI.get_optimization_container_key(ff)
     PSI.add_parameters!(container, parameter_type, source_key, model, devices)
     # Enabling this FF requires the addition of an extra variable
-    PSI.add_variables!(container, PSI.EnergyShortageVariable, devices, PSI.get_formulation(model)())
-    PSI.add_variables!(container, PSI.EnergySurplusVariable, devices, PSI.get_formulation(model)())
+    PSI.add_variables!(
+        container,
+        PSI.EnergyShortageVariable,
+        devices,
+        PSI.get_formulation(model)(),
+    )
+    PSI.add_variables!(
+        container,
+        PSI.EnergySurplusVariable,
+        devices,
+        PSI.get_formulation(model)(),
+    )
     return
 end
-
 
 @doc raw"""
         add_feedforward_constraints(
@@ -104,14 +114,15 @@ function PSI.add_feedforward_constraints!(
             PSI.FeedforwardEnergyTargetConstraint(),
             T,
             set_name;
-            meta = "$(var_type)target",
+            meta="$(var_type)target",
         )
 
         for d in devices
             name = PSY.get_name(d)
             con_ub[name] = JuMP.@constraint(
                 container.JuMPmodel,
-                variable[name, target_period] + shortage_var[name, target_period] - surplus_var[name, target_period] ==
+                variable[name, target_period] + shortage_var[name, target_period] -
+                surplus_var[name, target_period] ==
                 param[name, target_period] * multiplier[name, target_period]
             )
             PSI.add_to_objective_invariant_expression!(
@@ -126,7 +137,6 @@ function PSI.add_feedforward_constraints!(
     end
     return
 end
-
 
 function PSI._add_variable_cost_to_objective!(
     container::PSI.OptimizationContainer,

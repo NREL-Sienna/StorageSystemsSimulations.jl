@@ -1143,7 +1143,6 @@ function construct_device!(
     return
 end
 
-
 function construct_device!(
     container::OptimizationContainer,
     sys::PSY.System,
@@ -1216,7 +1215,7 @@ function construct_device!(
         PSI.ActivePowerOutVariable,
         devices,
         model,
-        network_model
+        network_model,
     )
     add_constraints!(
         container,
@@ -1224,7 +1223,7 @@ function construct_device!(
         PSI.ActivePowerInVariable,
         devices,
         model,
-        network_model
+        network_model,
     )
     add_constraints!(
         container,
@@ -1232,9 +1231,16 @@ function construct_device!(
         PSI.ReactivePowerVariable,
         devices,
         model,
-        network_model
+        network_model,
     )
-    add_constraints!(container, PSI.EnergyCapacityConstraint, PSI.EnergyVariable, devices, model, network_model)
+    add_constraints!(
+        container,
+        PSI.EnergyCapacityConstraint,
+        PSI.EnergyVariable,
+        devices,
+        model,
+        network_model,
+    )
 
     # Energy Balanace limits
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, network_model)
@@ -1321,7 +1327,14 @@ function construct_device!(
         model,
         network_model,
     )
-    add_constraints!(container, PSI.EnergyCapacityConstraint, PSI.EnergyVariable, devices, model, network_model)
+    add_constraints!(
+        container,
+        PSI.EnergyCapacityConstraint,
+        PSI.EnergyVariable,
+        devices,
+        model,
+        network_model,
+    )
 
     # Energy Balanace limits
     add_constraints!(container, PSI.EnergyBalanceConstraint, devices, model, network_model)
