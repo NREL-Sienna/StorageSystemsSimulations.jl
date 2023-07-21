@@ -78,9 +78,7 @@ include("core/expressions.jl")
 include("core/parameters.jl")
 
 # device models
-include("device_models/storage_constructor.jl")
-include("device_models/storage.jl")
-include("device_models/add_to_expressions.jl")
-include("device_models/objective_function.jl")
+include("storage_models.jl")
+include("storage_constructor.jl")
 
 end
