@@ -28,15 +28,15 @@ PSI.get_variable_warm_start_value(::PSI.EnergyVariable, d::PSY.Storage, ::Abstra
 PSI.get_variable_binary(::PSI.ReservationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = true
 get_efficiency(v::T, var::Type{<:PSI.InitialConditionType}) where T <: PSY.Storage = PSY.get_efficiency(v)
 
-############## EnergyShortageVariable, Storage ####################
-PSI.get_variable_binary(::PSI.EnergyShortageVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
-PSI.get_variable_lower_bound(::PSI.EnergyShortageVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
-PSI.get_variable_upper_bound(::PSI.EnergyShortageVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).max
+############## StorageEnergyShortageVariable, Storage ####################
+PSI.get_variable_binary(::StorageEnergyShortageVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
+PSI.get_variable_lower_bound(::StorageEnergyShortageVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
+PSI.get_variable_upper_bound(::StorageEnergyShortageVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).max
 
-############## EnergySurplusVariable, Storage ####################
-PSI.get_variable_binary(::PSI.EnergySurplusVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
-PSI.get_variable_upper_bound(::PSI.EnergySurplusVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
-PSI.get_variable_lower_bound(::PSI.EnergySurplusVariable, d::PSY.Storage, ::AbstractStorageFormulation) = - PSY.get_state_of_charge_limits(d).max
+############## StorageEnergySurplusVariable, Storage ####################
+PSI.get_variable_binary(::StorageEnergySurplusVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
+PSI.get_variable_upper_bound(::StorageEnergySurplusVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
+PSI.get_variable_lower_bound(::StorageEnergySurplusVariable, d::PSY.Storage, ::AbstractStorageFormulation) = - PSY.get_state_of_charge_limits(d).max
 
 #################### Initial Conditions for models ###############
 PSI.initial_condition_default(::PSI.InitialEnergyLevel, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_initial_energy(d)
@@ -49,11 +49,11 @@ PSI.get_initial_parameter_value(::PSI.VariableValueParameter, d::PSY.Storage, ::
 
 ########################Objective Function##################################################
 PSI.objective_function_multiplier(::PSI.VariableType, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
-PSI.objective_function_multiplier(::PSI.EnergySurplusVariable, ::EnergyTarget)=PSI.OBJECTIVE_FUNCTION_NEGATIVE
-PSI.objective_function_multiplier(::PSI.EnergyShortageVariable, ::EnergyTarget)=PSI.OBJECTIVE_FUNCTION_POSITIVE
+PSI.objective_function_multiplier(::StorageEnergySurplusVariable, ::EnergyTarget)=PSI.OBJECTIVE_FUNCTION_NEGATIVE
+PSI.objective_function_multiplier(::StorageEnergyShortageVariable, ::EnergyTarget)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::PSI.EnergySurplusVariable, ::PSY.BatteryEMS, ::EnergyTarget)=PSY.get_energy_surplus_cost(cost)
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::PSI.EnergyShortageVariable, ::PSY.BatteryEMS, ::EnergyTarget)=PSY.get_energy_shortage_cost(cost)
+PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergySurplusVariable, ::PSY.BatteryEMS, ::EnergyTarget)=PSY.get_energy_surplus_cost(cost)
+PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergyShortageVariable, ::PSY.BatteryEMS, ::EnergyTarget)=PSY.get_energy_shortage_cost(cost)
 
 PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.BatteryEMS, ::EnergyTarget)=PSY.get_variable(cost)
 
@@ -89,11 +89,11 @@ function PSI.get_default_attributes(
 end
 
 PSI.objective_function_multiplier(
-    ::PSI.EnergySurplusVariable,
+    ::StorageEnergySurplusVariable,
     ::EnergyTargetAncillaryServices,
 ) = PSI.OBJECTIVE_FUNCTION_NEGATIVE
 PSI.objective_function_multiplier(
-    ::PSI.EnergyShortageVariable,
+    ::StorageEnergyShortageVariable,
     ::EnergyTargetAncillaryServices,
 ) = PSI.OBJECTIVE_FUNCTION_POSITIVE
 PSI.objective_function_multiplier(::PSI.EnergyVariable, ::EnergyValue) =
@@ -101,13 +101,13 @@ PSI.objective_function_multiplier(::PSI.EnergyVariable, ::EnergyValue) =
 
 PSI.proportional_cost(
     cost::PSY.StorageManagementCost,
-    ::PSI.EnergySurplusVariable,
+    ::StorageEnergySurplusVariable,
     ::PSY.Storage,
     ::EnergyTargetAncillaryServices,
 ) = PSY.get_energy_surplus_cost(cost)
 PSI.proportional_cost(
     cost::PSY.StorageManagementCost,
-    ::PSI.EnergyShortageVariable,
+    ::StorageEnergyShortageVariable,
     ::PSY.Storage,
     ::EnergyTargetAncillaryServices,
 ) = PSY.get_energy_shortage_cost(cost)
@@ -320,8 +320,8 @@ function add_constraints!(
     time_steps = PSI.get_time_steps(container)
     name_index = [PSY.get_name(d) for d in devices]
     energy_var = PSI.get_variable(container, PSI.EnergyVariable(), V)
-    shortage_var = PSI.get_variable(container, PSI.EnergyShortageVariable(), V)
-    surplus_var = PSI.get_variable(container, PSI.EnergySurplusVariable(), V)
+    shortage_var = PSI.get_variable(container, StorageEnergyShortageVariable(), V)
+    surplus_var = PSI.get_variable(container, StorageEnergySurplusVariable(), V)
 
     param_container = PSI.get_parameter(container, PSI.EnergyTargetTimeSeriesParameter(), V)
     multiplier = PSI.get_multiplier_array(param_container)
@@ -338,7 +338,7 @@ function add_constraints!(
         shortage_cost = PSY.get_energy_shortage_cost(PSY.get_operation_cost(d))
         if shortage_cost == 0.0
             @warn(
-                "Device $name has energy shortage cost set to 0.0, as a result the model will turnoff the EnergyShortageVariable to avoid infeasible/unbounded problem."
+                "Device $name has energy shortage cost set to 0.0, as a result the model will turnoff the StorageEnergyShortageVariable to avoid infeasible/unbounded problem."
             )
             JuMP.delete_upper_bound.(shortage_var[name, :])
             JuMP.set_upper_bound.(shortage_var[name, :], 0.0)
@@ -504,7 +504,7 @@ function PSI.objective_function!(
     ::Type{V},
 ) where {T <: EnergyTarget, V <: PM.AbstractPowerModel}
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
-    PSI.add_proportional_cost!(container, PSI.EnergySurplusVariable(), devices, T())
-    PSI.add_proportional_cost!(container, PSI.EnergyShortageVariable(), devices, T())
+    PSI.add_proportional_cost!(container, StorageEnergySurplusVariable(), devices, T())
+    PSI.add_proportional_cost!(container, StorageEnergyShortageVariable(), devices, T())
     return
 end
