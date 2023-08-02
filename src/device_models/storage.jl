@@ -557,7 +557,7 @@ function PSI.add_feedforward_constraints!(
     multiplier = PSI.get_parameter_multiplier_array(container, parameter_type(), T)
     target_period = ff.target_period
     penalty_cost = ff.penalty_cost
-    for var in PSI.et_affected_values(ff)
+    for var in PSI.get_affected_values(ff)
         variable = PSI.get_variable(container, var)
         slack_var = PSI.get_variable(container, StorageEnergyShortageVariable(), T)
         set_name, set_time = JuMP.axes(variable)
