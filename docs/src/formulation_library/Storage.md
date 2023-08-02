@@ -32,24 +32,24 @@ BookKeeping
 **Variables:**
 
   - [`ActivePowerInVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `-1 * PowerSystems.get_active_power(device)`
 
   - [`ActivePowerOutVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_active_power(device)`
   - [`ReactivePowerVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_reactive_power(device)`
   - [`EnergyVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_initial_storage(device)`
   - [`ReservationVariable`](@ref):
-    
+
       + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
       + Bounds: {0, 1}
       + Default initial value: 1
@@ -92,32 +92,32 @@ EnergyTarget
 **Variables:**
 
   - [`ActivePowerInVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `-1 * PowerSystems.get_active_power(device)`
 
   - [`ActivePowerOutVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_active_power(device)`
   - [`ReactivePowerVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_reactive_power(device)`
   - [`EnergyVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_initial_storage(device)`
-  - [`EnergyShortageVariable`](@ref):
-    
+  - [`StorageEnergyShortageVariable`](@ref):
+
       + Bounds: [ , 0.0]
       + Default initial value: 0.0
-  - [`EnergySurplusVariable`](@ref):
-    
+  - [`StorageEnergySurplusVariable`](@ref):
+
       + Bounds: [0.0, ]
       + Default initial value: 0.0
   - [`ReservationVariable`](@ref):
-    
+
       + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
       + Bounds: {0, 1}
       + Default initial value: 1
@@ -177,24 +177,24 @@ BatteryAncillaryServices
 **Variables:**
 
   - [`ActivePowerInVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `-1 * PowerSystems.get_active_power(device)`
 
   - [`ActivePowerOutVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_active_power(device)`
   - [`ReactivePowerVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_reactive_power(device)`
   - [`EnergyVariable`](@ref):
-    
+
       + Bounds: [0.0, ]
       + Default initial value: `PowerSystems.get_initial_storage(device)`
   - [`ReservationVariable`](@ref):
-    
+
       + only included if `DeviceModel(HydroPumpedStorage, HydroDispatchPumpedStorage; attributes = Dict(reservation => true))`
       + Bounds: {0, 1}
       + Default initial value: 1
