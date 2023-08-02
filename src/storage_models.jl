@@ -163,15 +163,6 @@ end
 
 function PSI.get_default_time_series_names(
     ::Type{D},
-    ::Type{EnergyValue},
-) where {D <: PSY.Storage}
-    return Dict{Type{<:PSI.ParameterType}, String}(
-        EnergyValueTimeSeriesParameter => "energy_value",
-    )
-end
-
-function PSI.get_default_time_series_names(
-    ::Type{D},
     ::Type{ChargingValue},
 ) where {D <: PSY.Storage}
     return Dict{Type{<:PSI.ParameterType}, String}(
@@ -379,7 +370,7 @@ function PSI.add_constraints!(
     devices::IS.FlattenIteratorWrapper{T},
     model::PSI.DeviceModel{T, D},
     ::NetworkModel{<:PM.AbstractPowerModel},
-) where {T <: PSY.Storage, D <: PSI.AbstractStorageFormulation}
+) where {T <: PSY.Storage, D <: AbstractStorageFormulation}
     time_steps = PSI.get_time_steps(container)
     var_e = PSI.get_variable(container, PSI.EnergyVariable(), T)
     expr_up = PSI.get_expression(container, PSI.ReserveRangeExpressionUB(), T)
@@ -424,7 +415,7 @@ function PSI.add_constraints!(
     devices::IS.FlattenIteratorWrapper{T},
     model::PSI.DeviceModel{T, D},
     ::NetworkModel{<:PM.AbstractPowerModel},
-) where {T <: PSY.Storage, D <: PSI.AbstractStorageFormulation}
+) where {T <: PSY.Storage, D <: AbstractStorageFormulation}
     time_steps = PSI.get_time_steps(container)
     var_in = PSI.get_variable(container, PSI.ActivePowerInVariable(), T)
     var_out = PSI.get_variable(container, PSI.ActivePowerOutVariable(), T)
@@ -599,59 +590,6 @@ function PSI._add_variable_cost_to_objective!(
     return
 end
 
-function PSI._add_variable_cost_to_objective!(
-    container::PSI.OptimizationContainer,
-    ::T,
-    component::U,
-    op_cost::DynamicEnergyCost,
-    ::V,
-) where {T <: PSI.EnergyVariable, U <: PSY.Storage, V <: EnergyValueCurve}
-    component_name = PSY.get_name(component)
-    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
-    time_steps = PSI.get_time_steps(container)
-    initial_time = PSI.get_initial_time(container)
-    variable_cost_forecast = PSY.get_variable_cost(
-        component,
-        op_cost;
-        start_time=initial_time,
-        len=length(time_steps),
-    )
-    variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
-    parameter_container = PSI._get_cost_function_parameter_container(
-        container,
-        PSI.CostFunctionParameter(),
-        component,
-        T(),
-        V(),
-        eltype(variable_cost_forecast_values),
-    )
-    pwl_cost_expressions =
-        PSI._add_pwl_term!(container, component, variable_cost_forecast_values, T(), V())
-    jump_model = PSI.get_jump_model(container)
-    for t in time_steps
-        PSI.set_parameter!(
-            parameter_container,
-            jump_model,
-            PSY.get_cost(variable_cost_forecast_values[t]),
-            # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
-            #  of base power times the time delta.
-            1.0,
-            component_name,
-            t,
-        )
-        PSI.add_to_expression!(
-            container,
-            PSI.ProductionCostExpression,
-            pwl_cost_expressions[t],
-            component,
-            t,
-        )
-        PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
-    end
-
-    return
-end
-
 function PSI.add_to_expression!(
     container::PSI.OptimizationContainer,
     expressions::Vector,
@@ -670,32 +608,6 @@ function PSI.add_to_expression!(
     return
 end
 
-function PSI.add_to_expression!(
-    container::PSI.OptimizationContainer,
-    ::Type{T},
-    ::Type{U},
-    devices::Union{Vector{V}, IS.FlattenIteratorWrapper{V}},
-    model::PSI.ServiceModel{X, W},
-) where {
-    T <: ReserveEnergyExpressionUB,
-    U <: PSI.VariableType,
-    V <: PSY.Storage,
-    X <: PSY.Reserve{PSY.ReserveUp},
-    W <: PSI.AbstractReservesFormulation,
-}
-    service_name = PSI.get_service_name(model)
-    variable = PSI.get_variable(container, U(), X, service_name)
-    if !PSI.has_container_key(container, T, V)
-        PSI.add_expressions!(container, T, devices, model)
-    end
-    expression = PSI.get_expression(container, T(), V)
-    for d in devices, t in PSI.get_time_steps(container)
-        service = get_service(d, service_name)
-        time_frame = PSY.get_time_frame(service)
-        # need to confirm that the  time frame is in min ?
-        time_delta = time_frame / PSI._get_minutes_per_period(container)
-        name = PSY.get_name(d)
-        PSI._add_to_jump_expression!(expression[name, t], variable[name, t], 1.0)
 function PSI._add_feedforward_arguments!(
     container::OptimizationContainer,
     model::DeviceModel,

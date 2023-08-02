@@ -7,7 +7,6 @@ export EnergyTarget
 export EnergyTargetAncillaryServices
 export EnergyValue
 export EnergyValueCurve
-export DynamicEnergyCost
 export BookKeeping
 export BatteryAncillaryServices
 
@@ -73,9 +72,6 @@ function progress_meter_enabled()
 end
 
 # Includes
-#New structs
-include("descriptors/generated/includes.jl")
-include("descriptors/cost_function_timeseries.jl")
 # Core components
 include("core/formulations.jl")
 include("core/variables.jl")
