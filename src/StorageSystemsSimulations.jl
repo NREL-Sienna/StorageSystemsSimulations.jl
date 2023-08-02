@@ -9,6 +9,12 @@ export EnergyValueCurve
 export BookKeeping
 export BatteryAncillaryServices
 
+# variables
+export StorageEnergyVariableUp
+export StorageEnergyVariableDown
+export StorageEnergyShortageVariable
+export StorageEnergySurplusVariable
+
 #################################################################################
 # Imports
 import Logging
