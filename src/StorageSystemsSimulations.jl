@@ -7,9 +7,14 @@ export EnergyTarget
 export EnergyTargetAncillaryServices
 export EnergyValue
 export EnergyValueCurve
-export DynamicEnergyCost
 export BookKeeping
 export BatteryAncillaryServices
+
+# variables
+export StorageEnergyVariableUp
+export StorageEnergyVariableDown
+export StorageEnergyShortageVariable
+export StorageEnergySurplusVariable
 
 #################################################################################
 # Imports
@@ -67,15 +72,13 @@ function progress_meter_enabled()
 end
 
 # Includes
-#New structs
-include("descriptors/generated/includes.jl")
-include("descriptors/cost_function_timeseries.jl")
 # Core components
 include("core/formulations.jl")
 include("core/variables.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/parameters.jl")
+include("core/initial_conditions.jl")
 
 # device models
 include("storage_models.jl")

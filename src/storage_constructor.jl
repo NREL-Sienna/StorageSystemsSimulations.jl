@@ -417,8 +417,8 @@ function construct_device!(
     add_variables!(container, PSI.ActivePowerOutVariable, devices, EnergyTarget())
     add_variables!(container, PSI.ReactivePowerVariable, devices, EnergyTarget())
     add_variables!(container, PSI.EnergyVariable, devices, EnergyTarget())
-    add_variables!(container, PSI.EnergyShortageVariable, devices, EnergyTarget())
-    add_variables!(container, PSI.EnergySurplusVariable, devices, EnergyTarget())
+    add_variables!(container, StorageEnergyShortageVariable, devices, EnergyTarget())
+    add_variables!(container, StorageEnergySurplusVariable, devices, EnergyTarget())
     if get_attribute(model, "reservation")
         add_variables!(container, PSI.ReservationVariable, devices, EnergyTarget())
     end
@@ -522,8 +522,8 @@ function construct_device!(
     add_variables!(container, PSI.ActivePowerInVariable, devices, EnergyTarget())
     add_variables!(container, PSI.ActivePowerOutVariable, devices, EnergyTarget())
     add_variables!(container, PSI.EnergyVariable, devices, EnergyTarget())
-    add_variables!(container, PSI.EnergyShortageVariable, devices, EnergyTarget())
-    add_variables!(container, PSI.EnergySurplusVariable, devices, EnergyTarget())
+    add_variables!(container, StorageEnergyShortageVariable, devices, EnergyTarget())
+    add_variables!(container, StorageEnergySurplusVariable, devices, EnergyTarget())
     if get_attribute(model, "reservation")
         add_variables!(container, PSI.ReservationVariable, devices, EnergyTarget())
     end
@@ -626,13 +626,13 @@ function construct_device!(
     add_variables!(container, PSI.EnergyVariable, devices, EnergyTargetAncillaryServices())
     add_variables!(
         container,
-        PSI.EnergyShortageVariable,
+        StorageEnergyShortageVariable,
         devices,
         EnergyTargetAncillaryServices(),
     )
     add_variables!(
         container,
-        PSI.EnergySurplusVariable,
+        StorageEnergySurplusVariable,
         devices,
         EnergyTargetAncillaryServices(),
     )
