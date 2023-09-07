@@ -1,20 +1,17 @@
 ### Define Constraints using PSI.ConstraintType ###
 
-struct StatusOutOn <: PSI.ConstraintType end
-struct StatusInOn <: PSI.ConstraintType end
+# Constraints taken from PSI
+# OutputActivePowerVariableLimitsConstraint
+# InputActivePowerVariableLimitsConstraint
+# EnergyBalanceConstraint
 
-## AS Provision
+# EnergyTargetConstraint
+
+struct StateofChargeLimitsConstraint <: PSI.ConstraintType end
+struct StorageCyclingCharge <: PSI.ConstraintType end
+struct StorageCyclingDischarge <: PSI.ConstraintType end
+
+## AS Provision Energy Constraints
 struct ReserveCoverageConstraint <: PSI.ConstraintType end
 struct ReserveCoverageConstraintEndOfPeriod <: PSI.ConstraintType end
-struct ChargingReservePowerLimit <: PSI.ConstraintType end
-struct DischargingReservePowerLimit <: PSI.ConstraintType end
-
-## Auxiliary for Output
-struct AuxiliaryReserveConstraint <: PSI.ConstraintType end
-struct ReserveBalance <: PSI.ConstraintType end
-
-struct BatteryStatusChargeOn <: PSI.ConstraintType end
-struct BatteryStatusDischargeOn <: PSI.ConstraintType end
-struct BatteryBalance <: PSI.ConstraintType end
-struct CyclingCharge <: PSI.ConstraintType end
-struct CyclingDischarge <: PSI.ConstraintType end
+struct StorageTotalReserve <: PSI.ConstraintType end
