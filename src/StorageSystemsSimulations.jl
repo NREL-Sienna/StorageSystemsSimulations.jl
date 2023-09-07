@@ -1,67 +1,54 @@
 module StorageSystemsSimulations
 
 ######## Storage Formulations ########
-export StorageDispatchEnergyOnly
-export StorageDispatch
-export EnergyTarget
-export EnergyTargetAncillaryServices
-export EnergyValue
-export EnergyValueCurve
-export BookKeeping
-export BatteryAncillaryServices
+export StorageDispatchWithReserves
 
 # variables
-export StorageEnergyVariableUp
-export StorageEnergyVariableDown
+export AncillaryServiceVariableOut
+export AncillaryServiceVariableIn
 export StorageEnergyShortageVariable
 export StorageEnergySurplusVariable
+export StorageChargeCyclingSlackVariable
+export StorageDischargeCyclingSlackVariable
+
+# constraints
+export StateofChargeLimitsConstraint
+export StorageCyclingCharge
+export StorageCyclingDischarge
+export ReserveCoverageConstraint
+export ReserveCoverageConstraintEndOfPeriod
+export StorageTotalReserve
 
 #################################################################################
 # Imports
 import Logging
 # Modeling Imports
 import JuMP
-# so that users do not need to import JuMP to use a solver with PowerModels
 import JuMP: optimizer_with_attributes
 import JuMP.Containers: DenseAxisArray, SparseAxisArray
 import LinearAlgebra
 
-# importing SIIP Packages
 import InfrastructureSystems
 import PowerSystems
 import PowerSimulations
-import PowerModels
-import PowerSimulations:
-    OptimizationContainer,
-    ArgumentConstructStage,
-    ModelConstructStage,
-    DeviceModel,
-    NetworkModel,
-    construct_device!,
-    add_variables!,
-    add_parameters!,
-    add_expressions!,
-    add_feedforward_arguments!,
-    add_constraints!,
-    add_constraint_dual!,
-    add_feedforward_constraints!,
-    add_to_expression!,
-    objective_function!,
-    get_available_components,
-    initial_conditions!,
-    has_service_model,
-    get_attribute
-
-# TimeStamp Management Imports
+import MathOptInterface
+import PowerSimulations
+import PowerSystems
+import JuMP
 import Dates
+import DataStructures: OrderedDict
 
-################################################################################
-
-# Type Alias From other Packages
-const PM = PowerModels
-const PSY = PowerSystems
+const MOI = MathOptInterface
 const PSI = PowerSimulations
+const PSY = PowerSystems
+const PM = PSI.PM
 const IS = InfrastructureSystems
+
+using DocStringExtensions
+@template (FUNCTIONS, METHODS) = """
+                                    $(TYPEDSIGNATURES)
+                                    $(DOCSTRING)
+                                    """
 
 ################################################################################
 
@@ -77,7 +64,6 @@ include("core/formulations.jl")
 include("core/variables.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
-include("core/parameters.jl")
 include("core/initial_conditions.jl")
 
 # device models
