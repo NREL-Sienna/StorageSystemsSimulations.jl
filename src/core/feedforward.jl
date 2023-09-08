@@ -186,7 +186,7 @@ function add_feedforward_constraints!(
             FeedforwardEnergyTargetConstraint(),
             T,
             set_name;
-            meta = "$(var_type)target",
+            meta="$(var_type)target",
         )
 
         for d in devices

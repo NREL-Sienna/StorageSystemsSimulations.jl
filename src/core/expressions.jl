@@ -1,7 +1,16 @@
+struct TotalReserveOffering <: PSI.ExpressionType end
+
+abstract type StorageReserveDischargeExpression <: PSI.ExpressionType end
+abstract type StorageReserveChargeExpression <: PSI.ExpressionType end
+
 # Used for the Power Limits constraints
-struct ReserveAssignmentBalanceOut <: PSI.ExpressionType end
-struct ReserveAssignmentBalanceIn <: PSI.ExpressionType end
+struct ReserveAssignmentBalanceUpDischarge <: StorageReserveDischargeExpression end
+struct ReserveAssignmentBalanceUpCharge <: StorageReserveChargeExpression end
+struct ReserveAssignmentBalanceDownDischarge <: StorageReserveDischargeExpression end
+struct ReserveAssignmentBalanceDownCharge <: StorageReserveChargeExpression end
 
 # Used for the SoC estimates
-struct ReserveDeploymentBalanceOut <: PSI.ExpressionType end
-struct ReserveDeploymentBalanceIn <: PSI.ExpressionType end
+struct ReserveDeploymentBalanceUpDischarge <: StorageReserveDischargeExpression end
+struct ReserveDeploymentBalanceUpCharge <: StorageReserveChargeExpression end
+struct ReserveDeploymentBalanceDownDischarge <: StorageReserveDischargeExpression end
+struct ReserveDeploymentBalanceDownCharge <: StorageReserveChargeExpression end

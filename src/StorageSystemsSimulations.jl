@@ -4,8 +4,8 @@ module StorageSystemsSimulations
 export StorageDispatchWithReserves
 
 # variables
-export AncillaryServiceVariableOut
-export AncillaryServiceVariableIn
+export AncillaryServiceVariableDischarge
+export AncillaryServiceVariableCharge
 export StorageEnergyShortageVariable
 export StorageEnergySurplusVariable
 export StorageChargeCyclingSlackVariable

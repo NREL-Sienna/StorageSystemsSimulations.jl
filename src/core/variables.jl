@@ -7,8 +7,8 @@
 # ReservationVariable
 
 # Ancillary Service Assignment Variables
-struct AncillaryServiceVariableOut <: PSI.VariableType end
-struct AncillaryServiceVariableIn <: PSI.VariableType end
+struct AncillaryServiceVariableDischarge <: PSI.VariableType end
+struct AncillaryServiceVariableCharge <: PSI.VariableType end
 
 """
 Struct to dispatch the creation of a slack variable for energy storage levels < target storage levels
