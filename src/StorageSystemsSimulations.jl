@@ -10,6 +10,8 @@ export StorageEnergyShortageVariable
 export StorageEnergySurplusVariable
 export StorageChargeCyclingSlackVariable
 export StorageDischargeCyclingSlackVariable
+export ReserveDischargeConstraint
+export ReserveChargeConstraint
 
 # constraints
 export StateofChargeLimitsConstraint
@@ -17,7 +19,7 @@ export StorageCyclingCharge
 export StorageCyclingDischarge
 export ReserveCoverageConstraint
 export ReserveCoverageConstraintEndOfPeriod
-export StorageTotalReserve
+export StorageTotalReserveConstraint
 
 #################################################################################
 # Imports

@@ -120,7 +120,7 @@ function PSI.add_feedforward_constraints!(
         for d in devices
             name = PSY.get_name(d)
             con_ub[name] = JuMP.@constraint(
-                container.JuMPmodel,
+                PSI.get_jump_model(container),
                 variable[name, target_period] + shortage_var[name, target_period] -
                 surplus_var[name, target_period] ==
                 param[name, target_period] * multiplier[name, target_period]
@@ -192,7 +192,7 @@ function add_feedforward_constraints!(
         for d in devices
             name = PSY.get_name(d)
             con_ub[name] = JuMP.@constraint(
-                container.JuMPmodel,
+                PSI.get_jump_model(container),
                 variable[name, target_period] + slack_var[name, target_period] >=
                 param[name, target_period] * multiplier[name, target_period]
             )

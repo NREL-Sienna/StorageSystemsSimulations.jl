@@ -3,7 +3,8 @@ function _add_ancillary_services!(
     devices::IS.FlattenIteratorWrapper{T},
     ::PSI.ArgumentConstructStage,
     model::PSI.DeviceModel{T, U},
-) where {T <: PSY.Storage, U <: StorageDispatchWithReserves}
+    network_model::PSI.NetworkModel{V},
+) where {T <: PSY.Storage, U <: StorageDispatchWithReserves, V <: PM.AbstractPowerModel}
     PSI.add_variables!(container, AncillaryServiceVariableDischarge, devices, U())
     PSI.add_variables!(container, AncillaryServiceVariableCharge, devices, U())
     time_steps = PSI.get_time_steps(container)
@@ -69,6 +70,43 @@ function _add_ancillary_services!(
     return
 end
 
+function _add_ancillary_services!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{T},
+    ::PSI.ModelConstructStage,
+    model::PSI.DeviceModel{T, U},
+    network_model::PSI.NetworkModel{V},
+) where {T <: PSY.Storage, U <: StorageDispatchWithReserves, V <: PM.AbstractPowerModel}
+    PSI.add_constraints!(
+        container,
+        ReserveCoverageConstraint,
+        devices,
+        model,
+        network_model,
+    )
+
+    PSI.add_constraints!(
+        container,
+        ReserveCoverageConstraintEndOfPeriod,
+        devices,
+        model,
+        network_model,
+    )
+
+    PSI.add_constraints!(
+        container,
+        ReserveDischargeConstraint,
+        devices,
+        model,
+        network_model,
+    )
+
+    PSI.add_constraints!(container, ReserveChargeConstraint, devices, model, network_model)
+
+    PSI.add_constraints!(container, StorageTotalReserveConstraint, devices, model, network_model)
+
+    return
+end
 function _active_power_variables_and_expressions(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
@@ -84,13 +122,13 @@ function _active_power_variables_and_expressions(
     end
 
     if PSI.get_attribute(model, "energy_target")
-        PSI.add_variables!(container, PSI.StorageEnergyShortageVariable, devices, U())
-        PSI.add_variables!(container, PSI.StorageEnergySurplusVariable, devices, U())
+        PSI.add_variables!(container, StorageEnergyShortageVariable, devices, U())
+        PSI.add_variables!(container, StorageEnergySurplusVariable, devices, U())
     end
 
     if PSI.get_attribute(model, "cycling_limits")
-        PSI.add_variables!(container, PSI.StorageChargeCyclingSlackVariable, devices, U())
-        PSI.add_variables!(container, PSI.StorageEnergySurplusVariable, devices, U())
+        PSI.add_variables!(container, StorageChargeCyclingSlackVariable, devices, U())
+        PSI.add_variables!(container, StorageDischargeCyclingSlackVariable, devices, U())
     end
 
     PSI.initial_conditions!(container, devices, U())
@@ -167,7 +205,7 @@ function PSI.construct_device!(
     )
 
     if PSI.has_service_model(model)
-        _add_ancillary_services!(container, devices, stage, model)
+        _add_ancillary_services!(container, devices, stage, model, network_model)
     end
 
     PSI.add_feedforward_arguments!(container, model, devices)
@@ -202,6 +240,31 @@ function PSI.construct_device!(
         network_model,
     )
 
+    if PSI.has_service_model(model)
+        _add_ancillary_services!(container, devices, stage, model, network_model)
+    end
+
+    if PSI.get_attribute(model, "energy_target")
+        PSI.add_constraints!(
+            container,
+            StateofChargeTargetConstraint,
+            devices,
+            model,
+            network_model,
+        )
+    end
+
+    if PSI.get_attribute(model, "cycling_limits")
+        PSI.add_constraints!(container, StorageCyclingCharge, devices, model, network_model)
+        PSI.add_constraints!(
+            container,
+            StorageCyclingDischarge,
+            devices,
+            model,
+            network_model,
+        )
+    end
+
     PSI.add_constraint_dual!(container, sys, model)
     return
 end
@@ -221,7 +284,7 @@ function PSI.construct_device!(
     _active_power_variables_and_expressions(container, devices, model, network_model)
 
     if PSI.has_service_model(model)
-        _add_ancillary_services!(container, devices, stage, model)
+        _add_ancillary_services!(container, devices, stage, model, network_model)
     end
 
     PSI.add_feedforward_arguments!(container, model, devices)
@@ -231,7 +294,7 @@ end
 function PSI.construct_device!(
     container::PSI.OptimizationContainer,
     sys::PSY.System,
-    ::PSI.ModelConstructStage,
+    stage::PSI.ModelConstructStage,
     model::PSI.DeviceModel{St, D},
     network_model::PSI.NetworkModel{S},
 ) where {
@@ -250,6 +313,31 @@ function PSI.construct_device!(
         model,
         network_model,
     )
+
+    if PSI.has_service_model(model)
+        _add_ancillary_services!(container, devices, stage, model, network_model)
+    end
+
+    if PSI.get_attribute(model, "energy_target")
+        PSI.add_constraints!(
+            container,
+            StateofChargeTargetConstraint,
+            devices,
+            model,
+            network_model,
+        )
+    end
+
+    if PSI.get_attribute(model, "cycling_limits")
+        PSI.add_constraints!(container, StorageCyclingCharge, devices, model, network_model)
+        PSI.add_constraints!(
+            container,
+            StorageCyclingDischarge,
+            devices,
+            model,
+            network_model,
+        )
+    end
 
     PSI.add_feedforward_constraints!(container, model, devices)
 
