@@ -41,6 +41,20 @@ PSI.get_variable_binary(::StorageEnergySurplusVariable, ::Type{<:PSY.Storage}, :
 PSI.get_variable_binary(::StorageChargeCyclingSlackVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 PSI.get_variable_binary(::StorageDischargeCyclingSlackVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 
+########################Objective Function##################################################
+PSI.objective_function_multiplier(::PSI.VariableType, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
+PSI.objective_function_multiplier(::StorageEnergySurplusVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
+PSI.objective_function_multiplier(::StorageEnergyShortageVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
+
+PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergySurplusVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
+PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergyShortageVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
+PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageChargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageDischargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+
+
+PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
+PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
+
 
 #! format: on
 
@@ -852,4 +866,49 @@ function PSI.add_constraints!(
         )
     end
     return
+end
+
+function PSI.objective_function!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{PSY.BatteryEMS},
+    ::PSI.DeviceModel{PSY.GenericBattery, T},
+    ::Type{V},
+) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
+    PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
+    PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, T())
+    return
+end
+
+function PSI.objective_function!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{PSY.BatteryEMS},
+    model::PSI.DeviceModel{PSY.BatteryEMS, T},
+    ::Type{V},
+) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
+    PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
+    PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, T())
+    if PSI.get_attribute(model, "energy_target")
+        PSI.add_proportional_cost!(container, StorageEnergySurplusVariable(), devices, T())
+        PSI.add_proportional_cost!(container, StorageEnergyShortageVariable(), devices, T())
+    end
+    if PSI.get_attribute(model, "cycling_limits")
+        PSI.add_proportional_cost!(container, StorageChargeCyclingSlackVariable(), devices, T())
+        PSI.add_proportional_cost!(container, StorageDischargeCyclingSlackVariable(), devices, T())
+    end
+    return
+end
+
+function PSI.add_proportional_cost!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    devices::IS.FlattenIteratorWrapper{U},
+    formulation::AbstractStorageFormulation
+) where {T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable}, U <: PSY.BatteryEMS}
+    variable = PSI.get_variable(container, T(), U)
+    for d in devices
+        name = PSY.get_name(d)
+        op_cost_data = PSY.get_operation_cost(d)
+        cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
+        PSI.add_to_objective_invariant_expression!(container, variable[name] * cost_term)
+    end
 end

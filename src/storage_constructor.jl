@@ -272,6 +272,7 @@ function PSI.construct_device!(
     end
 
     PSI.add_constraint_dual!(container, sys, model)
+    PSI.objective_function!(container, devices, model, S)
     return
 end
 
@@ -347,6 +348,7 @@ function PSI.construct_device!(
 
     PSI.add_feedforward_constraints!(container, model, devices)
 
+    PSI.objective_function!(container, devices, model, S)
     PSI.add_constraint_dual!(container, sys, model)
     return
 end
