@@ -892,8 +892,18 @@ function PSI.objective_function!(
         PSI.add_proportional_cost!(container, StorageEnergyShortageVariable(), devices, T())
     end
     if PSI.get_attribute(model, "cycling_limits")
-        PSI.add_proportional_cost!(container, StorageChargeCyclingSlackVariable(), devices, T())
-        PSI.add_proportional_cost!(container, StorageDischargeCyclingSlackVariable(), devices, T())
+        PSI.add_proportional_cost!(
+            container,
+            StorageChargeCyclingSlackVariable(),
+            devices,
+            T(),
+        )
+        PSI.add_proportional_cost!(
+            container,
+            StorageDischargeCyclingSlackVariable(),
+            devices,
+            T(),
+        )
     end
     return
 end
@@ -902,8 +912,11 @@ function PSI.add_proportional_cost!(
     container::PSI.OptimizationContainer,
     ::T,
     devices::IS.FlattenIteratorWrapper{U},
-    formulation::AbstractStorageFormulation
-) where {T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable}, U <: PSY.BatteryEMS}
+    formulation::AbstractStorageFormulation,
+) where {
+    T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable},
+    U <: PSY.BatteryEMS,
+}
     variable = PSI.get_variable(container, T(), U)
     for d in devices
         name = PSY.get_name(d)
