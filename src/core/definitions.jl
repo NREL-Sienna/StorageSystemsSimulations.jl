@@ -1,0 +1,1 @@
+const CYCLE_VIOLATION_COST = 5e3
