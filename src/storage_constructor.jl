@@ -103,7 +103,13 @@ function _add_ancillary_services!(
 
     PSI.add_constraints!(container, ReserveChargeConstraint, devices, model, network_model)
 
-    PSI.add_constraints!(container, StorageTotalReserveConstraint, devices, model, network_model)
+    PSI.add_constraints!(
+        container,
+        StorageTotalReserveConstraint,
+        devices,
+        model,
+        network_model,
+    )
 
     return
 end

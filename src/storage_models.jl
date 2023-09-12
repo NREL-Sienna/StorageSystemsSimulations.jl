@@ -227,6 +227,60 @@ function PSI.add_variables!(
     return
 end
 
+function PSI.add_variables!(
+    container::PSI.OptimizationContainer,
+    ::Type{T},
+    devices::IS.FlattenIteratorWrapper{U},
+    formulation::AbstractStorageFormulation,
+) where {
+    T <: Union{StorageEnergyShortageVariable, StorageEnergySurplusVariable},
+    U <: PSY.Storage,
+}
+    @assert !isempty(devices)
+    variable = PSI.add_variable_container!(
+        container,
+        T(),
+        U,
+        PSY.get_name.(devices),
+    )
+    for d in devices
+        name = PSY.get_name(d)
+        variable[name] = JuMP.@variable(
+            PSI.get_jump_model(container),
+            base_name = "$(T)_{$(PSY.get_name(d))}",
+            lower_bound = 0.0
+        )
+    end
+    return
+end
+
+function PSI.add_variables!(
+    container::PSI.OptimizationContainer,
+    ::Type{T},
+    devices::IS.FlattenIteratorWrapper{U},
+    formulation::AbstractStorageFormulation,
+) where {
+    T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable},
+    U <: PSY.Storage,
+}
+    @assert !isempty(devices)
+    variable = PSI.add_variable_container!(
+        container,
+        T(),
+        U,
+        PSY.get_name.(devices),
+    )
+    for d in devices
+        name = PSY.get_name(d)
+        variable[name] = JuMP.@variable(
+            PSI.get_jump_model(container),
+            base_name = "$(T)_{$(PSY.get_name(d))}",
+            lower_bound = 0.0
+        )
+    end
+    return
+end
+
 ############################# Expression Logic for Ancillary Services ######################
 PSI.get_variable_multiplier(
     ::Type{AncillaryServiceVariableCharge},
@@ -590,7 +644,6 @@ function PSI.add_constraints!(
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
 ) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
-
     services = Set()
     for d in devices
         union!(services, PSY.get_services(d))
@@ -598,12 +651,8 @@ function PSI.add_constraints!(
 
     for s in services
         s_name = PSY.get_name(s)
-        expression = PSI.get_expression(
-            container,
-            TotalReserveOffering(),
-            typeof(s),
-            "$s_name"
-        )
+        expression =
+            PSI.get_expression(container, TotalReserveOffering(), typeof(s), "$s_name")
         device_names, time_steps = axes(expression)
         constraint_container = PSI.add_constraints_container!(
             container,
@@ -611,13 +660,11 @@ function PSI.add_constraints!(
             typeof(s),
             device_names,
             time_steps,
-            meta = "$s_name"
+            meta="$s_name",
         )
         for name in device_names, t in time_steps
-            constraint_container[name, t] = JuMP.@constraint(
-                PSI.get_jump_model(container),
-                expression[name, t] == 0.0
-            )
+            constraint_container[name, t] =
+                JuMP.@constraint(PSI.get_jump_model(container), expression[name, t] == 0.0)
         end
     end
     return
@@ -654,7 +701,6 @@ function PSI.add_constraints!(
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
 ) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
-
     energy_var = PSI.get_variable(container, PSI.EnergyVariable(), V)
     surplus_var = PSI.get_variable(container, StorageEnergySurplusVariable(), V)
     shortfall_var = PSI.get_variable(container, StorageEnergyShortageVariable(), V)
@@ -665,18 +711,22 @@ function PSI.add_constraints!(
         StateofChargeTargetConstraint(),
         V,
         device_names,
-        time_steps,
     )
 
     for d in devices
-
+        name = PSY.get_name(d)
+        target = PSY.get_storage_target(d)
+        constraint_container[name] = JuMP.@constraint(
+            PSI.get_jump_model(container),
+            energy_var[name, time_steps[end]] - surplus_var[name] + shortfall_var[name] == target
+        )
     end
 
     return
 end
 
 function PSI.add_constraints!(
-    ::PSI.OptimizationContainer,
+    container::PSI.OptimizationContainer,
     ::Type{StorageCyclingCharge},
     devices::IS.FlattenIteratorWrapper{V},
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
@@ -686,10 +736,9 @@ function PSI.add_constraints!(
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
     names = [PSY.get_name(x) for x in devices]
-    initial_conditions = PSI.get_initial_condition(container, PSI.InitialEnergyLevel(), V)
 
     powerin_var = PSI.get_variable(container, PSI.ActivePowerInVariable(), V)
-    slack_var = PSI.get_variable(container, PSI.StorageChargeCyclingSlackVariable(), V)
+    slack_var = PSI.get_variable(container, StorageChargeCyclingSlackVariable(), V)
     r_dn_ch = PSI.get_expression(container, ReserveDeploymentBalanceDownCharge(), V)
 
     constraint = PSI.add_constraints_container!(
@@ -697,23 +746,23 @@ function PSI.add_constraints!(
         StorageCyclingCharge(),
         V,
         names,
-        time_steps,
     )
 
-    for d in devices, t in time_steps
+    for d in devices
+        name = PSY.get_name(d)
         e_max = PSY.get_state_of_charge_limits(d).max
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name, t] = JuMP.@constraint(
+        constraint[name] = JuMP.@constraint(
             PSI.get_jump_model(container),
-                ((powerin_var[name, t] + r_dn_ch[name, t]) * efficiency.in) * fraction_of_hour -  slack_var[name, t] <= e_max*cycle_count
-            )
+            sum(((powerin_var[name, t] + r_dn_ch[name, t]) * efficiency.in * fraction_of_hour for t in time_steps)) - slack_var[name] <= e_max * cycle_count
+        )
     end
     return
 end
 
 function PSI.add_constraints!(
-    ::PSI.OptimizationContainer,
+    container::PSI.OptimizationContainer,
     ::Type{StorageCyclingDischarge},
     devices::IS.FlattenIteratorWrapper{V},
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
@@ -724,25 +773,25 @@ function PSI.add_constraints!(
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
     names = [PSY.get_name(x) for x in devices]
     powerout_var = PSI.get_variable(container, PSI.ActivePowerOutVariable(), V)
-    slack_var = PSI.get_variable(container, PSI.StorageDischargeCyclingSlackVariable(), V)
+    slack_var = PSI.get_variable(container, StorageDischargeCyclingSlackVariable(), V)
     r_up_ds = PSI.get_expression(container, ReserveDeploymentBalanceUpDischarge(), V)
 
     constraint = PSI.add_constraints_container!(
         container,
         StorageCyclingDischarge(),
         V,
-        names,
-        time_steps,
+        names
     )
 
-    for d in devices, t in time_steps
+    for d in devices
+        name = PSY.get_name(d)
         e_max = PSY.get_state_of_charge_limits(d).max
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name, t] = JuMP.@constraint(
+        constraint[name] = JuMP.@constraint(
             PSI.get_jump_model(container),
-                ((powerout_var[name, t] + r_up_ds[name, t]) / efficiency.out) * fraction_of_hour -  slack_var[name, t] <= e_max*cycle_count
-            )
+            sum(((powerout_var[name, t] + r_up_ds[name, t]) / efficiency.out) * fraction_of_hour for t in time_steps) - slack_var[name] <= e_max * cycle_count
+        )
     end
     return
 end
