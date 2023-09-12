@@ -62,6 +62,7 @@ end
 
 # Includes
 # Core components
+include("core/definitions.jl")
 include("core/formulations.jl")
 include("core/variables.jl")
 include("core/constraints.jl")
