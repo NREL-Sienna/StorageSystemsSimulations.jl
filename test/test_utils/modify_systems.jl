@@ -33,7 +33,14 @@ function _build_battery(
         reactive_power=0.0,
         reactive_power_limits=nothing,
         base_power=100.0,
-        operation_cost=PSY.StorageManagementCost(),
+        operation_cost=PSY.StorageManagementCost(
+            energy_shortage_cost=1000.0,
+            energy_surplus_cost=1000.0,
+            fixed=0.0,
+            shut_down=0.0,
+            start_up=0.0,
+            variable=VariableCost(3.0),
+        ),
     )
     return device
 end

@@ -1102,3 +1102,21 @@ function PSI.add_proportional_cost!(
         PSI.add_to_objective_invariant_expression!(container, variable[name] * cost_term)
     end
 end
+
+function PSI.add_proportional_cost!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    devices::IS.FlattenIteratorWrapper{U},
+    formulation::AbstractStorageFormulation,
+) where {
+    T <: Union{StorageEnergyShortageVariable, StorageEnergySurplusVariable},
+    U <: PSY.BatteryEMS,
+}
+    variable = PSI.get_variable(container, T(), U)
+    for d in devices
+        name = PSY.get_name(d)
+        op_cost_data = PSY.get_operation_cost(d)
+        cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
+        PSI.add_to_objective_invariant_expression!(container, variable[name] * cost_term)
+    end
+end
