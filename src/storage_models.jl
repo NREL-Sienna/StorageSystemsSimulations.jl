@@ -172,6 +172,87 @@ function PSI.add_constraints!(
     end
 end
 
+function add_reserve_range_constraint_with_deployment!(
+    container::PSI.OptimizationContainer,
+    ::Type{T},
+    ::Type{U},
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, W},
+    ::PSI.NetworkModel{X},
+) where {
+    T <: PSI.OutputActivePowerVariableLimitsConstraint,
+    U <: PSI.ActivePowerOutVariable,
+    V <: PSY.Storage,
+    W <: AbstractStorageFormulation,
+    X <: PM.AbstractPowerModel,
+}
+    time_steps = PSI.get_time_steps(container)
+    names = [PSY.get_name(x) for x in devices]
+    powerout_var = PSI.get_variable(container, U(), V)
+    ss_var = PSI.get_variable(container, PSI.ReservationVariable(), V)
+    r_up_ds = PSI.get_expression(container, ReserveDeploymentBalanceUpDischarge(), V)
+    r_dn_ds = PSI.get_expression(container, ReserveDeploymentBalanceDownDischarge(), V)
+
+    constraint = PSI.add_constraints_container!(
+        container,
+        T(),
+        V,
+        names,
+        time_steps,
+    )
+
+    for d in devices, t in time_steps
+        ci_name = PSY.get_name(d)
+        constraint[ci_name, t] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        powerout_var[ci_name, t] + r_up_ds[ci_name, t] - r_dn_ds[ci_name, t] <=
+                        ss_var[ci_name, t] * PSY.get_output_active_power_limits(d).max
+                    )
+    end
+end
+
+function add_reserve_range_constraint_with_deployment!(
+    container::PSI.OptimizationContainer,
+    ::Type{T},
+    ::Type{U},
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, W},
+    ::PSI.NetworkModel{X},
+) where {
+    T <: PSI.InputActivePowerVariableLimitsConstraint,
+    U <: PSI.ActivePowerInVariable,
+    V <: PSY.Storage,
+    W <: AbstractStorageFormulation,
+    X <: PM.AbstractPowerModel,
+}
+
+    time_steps = PSI.get_time_steps(container)
+    names = [PSY.get_name(x) for x in devices]
+
+    powerin_var = PSI.get_variable(container, U(), V)
+    ss_var = PSI.get_variable(container, PSI.ReservationVariable(), V)
+    r_up_ch = PSI.get_expression(container, ReserveDeploymentBalanceUpCharge(), V)
+    r_dn_ch = PSI.get_expression(container, ReserveDeploymentBalanceDownCharge(), V)
+
+    constraint = PSI.add_constraints_container!(
+        container,
+        T(),
+        V,
+        names,
+        time_steps,
+    )
+
+    for d in devices, t in time_steps
+        ci_name = PSY.get_name(d)
+        constraint[ci_name, t] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        powerin_var[ci_name, t] + r_dn_ch[ci_name, t] - r_up_ch[ci_name, t] <=
+                        (1.0 - ss_var[ci_name, t]) * PSY.get_input_active_power_limits(d).max
+                    )
+    end
+end
+
+
 ############################# Energy Constraints ###########################
 """
 Min and max limits for Energy Capacity Constraint and AbstractStorageFormulation
@@ -422,10 +503,10 @@ get_fraction(::Type{ReserveAssignmentBalanceDownDischarge}, d::PSY.Reserve) = 1.
 get_fraction(::Type{ReserveAssignmentBalanceDownCharge}, d::PSY.Reserve) = 1.0
 
 # Needs to implement served fraction in PSY
-get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::PSY.Reserve) = 0.0
-get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::PSY.Reserve) = 0.0
-get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = 0.0
-get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = 0.0
+get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::PSY.Reserve) = 0.2
+get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::PSY.Reserve) = 0.2
+get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = 0.3
+get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = 0.3
 
 function add_to_expression!(
     container::PSI.OptimizationContainer,
@@ -446,10 +527,7 @@ function add_to_expression!(
         for s in services
             s_name = PSY.get_name(s)
             variable = PSI.get_variable(container, U(), V, "$(typeof(s))_$s_name")
-            @show s
-            @show U
-            @show T
-            @show mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
+            mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
             for t in PSI.get_time_steps(container)
                 PSI._add_to_jump_expression!(expression[name, t], variable[name, t], mult)
             end
@@ -477,10 +555,7 @@ function add_to_expression!(
         for s in services
             s_name = PSY.get_name(s)
             variable = PSI.get_variable(container, U(), V, "$(typeof(s))_$s_name")
-            @show s
-            @show U
-            @show T
-            @show mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
+            mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
             for t in PSI.get_time_steps(container)
                 PSI._add_to_jump_expression!(expression[name, t], variable[name, t], mult)
             end
@@ -584,11 +659,9 @@ function PSI.add_constraints!(
             PSI.get_value(ic) +
             (
                 (
-                    (powerin_var[name, 1] + r_dn_ch[name, 1]) * efficiency.in -
-                    r_up_ch[name, 1]
+                    (powerin_var[name, 1] + r_dn_ch[name, 1] - r_up_ch[name, 1]) * efficiency.in
                 ) - (
-                    (powerout_var[name, 1] + r_up_ds[name, 1]) / efficiency.out -
-                    r_dn_ds[name, 1]
+                    (powerout_var[name, 1] + r_up_ds[name, 1] - r_dn_ds[name, 1]) / efficiency.out 
                 )
             ) * fraction_of_hour
         )
@@ -600,11 +673,9 @@ function PSI.add_constraints!(
                 energy_var[name, t - 1] +
                 (
                     (
-                        (powerin_var[name, t] + r_dn_ch[name, t]) * efficiency.in -
-                        r_up_ch[name, t]
+                        (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) * efficiency.in 
                     ) - (
-                        (powerout_var[name, t] + r_up_ds[name, t]) / efficiency.out -
-                        r_dn_ds[name, t]
+                        (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) / efficiency.out 
                     )
                 ) * fraction_of_hour
             )
@@ -755,64 +826,75 @@ function PSI.add_constraints!(
                 V,
                 "$(typeof(service))_$service_name",
             )
-            con_charge = PSI.add_constraints_container!(
-                container,
-                T(),
-                V,
-                names,
-                time_steps,
-                meta="$(typeof(service))_$(service_name)_charge",
-            )
-            con_discharge = PSI.add_constraints_container!(
-                container,
-                T(),
-                V,
-                names,
-                time_steps,
-                meta="$(typeof(service))_$(service_name)_discharge",
-            )
-
-            if time_offset(T) == -1
-                con_charge[ci_name, 1] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_charge * reserve_var_charge[ci_name, 1] <=
-                    soc_limits.max - PSI.get_value(ic)
+            if typeof(service) <: PSY.Reserve{PSY.ReserveUp}
+                con_discharge = PSI.add_constraints_container!(
+                    container,
+                    T(),
+                    V,
+                    names,
+                    time_steps,
+                    meta="$(typeof(service))_$(service_name)_discharge",
                 )
 
-                con_discharge[ci_name, 1] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_discharge * reserve_var_discharge[ci_name, 1] <=
-                    PSI.get_value(ic) - soc_limits.min
+                if time_offset(T) == -1    
+                    con_discharge[ci_name, 1] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_discharge * reserve_var_discharge[ci_name, 1] <=
+                        PSI.get_value(ic) - soc_limits.min
+                    )
+                elseif time_offset(T) == 0    
+                    con_discharge[ci_name, 1] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_discharge * reserve_var_discharge[ci_name, 1] <=
+                        energy_var[ci_name, 1] - soc_limits.min
+                    )
+                else
+                    @assert false
+                end
+                for t in time_steps[2:end]
+                    con_discharge[ci_name, t] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_charge *
+                        reserve_var_discharge[ci_name, t] <=
+                        energy_var[ci_name, t + time_offset(T)] - soc_limits.min
+                    )
+                end
+            elseif typeof(service) <: PSY.Reserve{PSY.ReserveDown}
+                con_charge = PSI.add_constraints_container!(
+                    container,
+                    T(),
+                    V,
+                    names,
+                    time_steps,
+                    meta="$(typeof(service))_$(service_name)_charge",
                 )
-            elseif time_offset(T) == 0
-                con_charge[ci_name, 1] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_charge * reserve_var_charge[ci_name, 1] <=
-                    soc_limits.max - energy_var[ci_name, 1]
-                )
+                if time_offset(T) == -1
+                    con_charge[ci_name, 1] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_charge * reserve_var_charge[ci_name, 1] <=
+                        soc_limits.max - PSI.get_value(ic)
+                    )
+                elseif time_offset(T) == 0
+                    con_charge[ci_name, 1] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_charge * reserve_var_charge[ci_name, 1] <=
+                        soc_limits.max - energy_var[ci_name, 1]
+                    )
+                else
+                    @assert false
+                end
+    
+                for t in time_steps[2:end]
+                    con_charge[ci_name, t] = JuMP.@constraint(
+                        PSI.get_jump_model(container),
+                        sustained_param_charge *
+                        reserve_var_charge[ci_name, t] <=
+                        soc_limits.max - energy_var[ci_name, t + time_offset(T)]
+                    )
+                end
 
-                con_discharge[ci_name, 1] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_discharge * reserve_var_discharge[ci_name, 1] <=
-                    energy_var[ci_name, 1] - soc_limits.min
-                )
             else
                 @assert false
-            end
-
-            for t in time_steps[2:end]
-                con_charge[ci_name, t] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_charge *
-                    reserve_var_charge[ci_name, t + time_offset(T)] <=
-                    soc_limits.max - energy_var[ci_name, t + time_offset(T)]
-                )
-                con_charge[ci_name, t] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    sustained_param_charge *
-                    reserve_var_charge[ci_name, t + time_offset(T)] <=
-                    energy_var[ci_name, t + time_offset(T)] - soc_limits.min
-                )
             end
         end
     end

@@ -164,22 +164,41 @@ function _active_power_and_energy_bounds(
     model::PSI.DeviceModel{T, U},
     network_model::PSI.NetworkModel,
 ) where {T <: PSY.Storage, U <: StorageDispatchWithReserves}
-    PSI.add_constraints!(
-        container,
-        PSI.OutputActivePowerVariableLimitsConstraint,
-        PSI.ActivePowerOutVariable,
-        devices,
-        model,
-        network_model,
-    )
-    PSI.add_constraints!(
-        container,
-        PSI.InputActivePowerVariableLimitsConstraint,
-        PSI.ActivePowerInVariable,
-        devices,
-        model,
-        network_model,
-    )
+    if PSI.has_service_model(model)
+        add_reserve_range_constraint_with_deployment!(
+            container,
+            PSI.OutputActivePowerVariableLimitsConstraint,
+            PSI.ActivePowerOutVariable,
+            devices,
+            model,
+            network_model,
+        )
+        add_reserve_range_constraint_with_deployment!(
+            container,
+            PSI.InputActivePowerVariableLimitsConstraint,
+            PSI.ActivePowerInVariable,
+            devices,
+            model,
+            network_model,
+        )
+    else
+        PSI.add_constraints!(
+            container,
+            PSI.OutputActivePowerVariableLimitsConstraint,
+            PSI.ActivePowerOutVariable,
+            devices,
+            model,
+            network_model,
+        )
+        PSI.add_constraints!(
+            container,
+            PSI.InputActivePowerVariableLimitsConstraint,
+            PSI.ActivePowerInVariable,
+            devices,
+            model,
+            network_model,
+        )
+    end
     PSI.add_constraints!(
         container,
         StateofChargeLimitsConstraint,
