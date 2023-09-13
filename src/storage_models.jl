@@ -288,31 +288,133 @@ end
 ############################# Expression Logic for Ancillary Services ######################
 PSI.get_variable_multiplier(
     ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveAssignmentBalanceDownCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
     ::PSY.Reserve{PSY.ReserveUp},
-) = -1.0
+) = 0.0
 
 PSI.get_variable_multiplier(
     ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveAssignmentBalanceDownCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
     ::PSY.Reserve{PSY.ReserveDown},
 ) = 1.0
 
 PSI.get_variable_multiplier(
-    ::Type{AncillaryServiceVariableDischarge},
-    d::PSY.Storage,
-    ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveDown},
-) = 1.0
-
-PSI.get_variable_multiplier(
-    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveAssignmentBalanceUpCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
     ::PSY.Reserve{PSY.ReserveUp},
-) = -1.0
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveAssignmentBalanceUpCharge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 0.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveAssignmentBalanceDownDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 0.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveAssignmentBalanceDownDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveAssignmentBalanceUpDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveAssignmentBalanceUpDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 0.0
+
+### Deployment ###
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveDeploymentBalanceDownCharge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 0.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveDeploymentBalanceDownCharge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveDeploymentBalanceUpCharge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableCharge},
+    ::Type{ReserveDeploymentBalanceUpCharge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 0.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveDeploymentBalanceDownDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 0.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveDeploymentBalanceDownDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveDeploymentBalanceUpDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveUp},
+) = 1.0
+
+PSI.get_variable_multiplier(
+    ::Type{AncillaryServiceVariableDischarge},
+    ::Type{ReserveDeploymentBalanceUpDischarge},
+    d::PSY.Storage,
+    ::StorageDispatchWithReserves,
+    ::PSY.Reserve{PSY.ReserveDown},
+) = 0.0
+
 
 get_fraction(::Type{ReserveAssignmentBalanceUpDischarge}, d::PSY.Reserve) = 1.0
 get_fraction(::Type{ReserveAssignmentBalanceUpCharge}, d::PSY.Reserve) = 1.0
@@ -344,7 +446,10 @@ function add_to_expression!(
         for s in services
             s_name = PSY.get_name(s)
             variable = PSI.get_variable(container, U(), V, "$(typeof(s))_$s_name")
-            mult = PSI.get_variable_multiplier(U, d, W(), s) * get_fraction(T, s)
+            @show s
+            @show U
+            @show T
+            @show mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
             for t in PSI.get_time_steps(container)
                 PSI._add_to_jump_expression!(expression[name, t], variable[name, t], mult)
             end
@@ -372,7 +477,10 @@ function add_to_expression!(
         for s in services
             s_name = PSY.get_name(s)
             variable = PSI.get_variable(container, U(), V, "$(typeof(s))_$s_name")
-            mult = PSI.get_variable_multiplier(U, d, W(), s) * get_fraction(T, s)
+            @show s
+            @show U
+            @show T
+            @show mult = PSI.get_variable_multiplier(U, T, d, W(), s) * get_fraction(T, s)
             for t in PSI.get_time_steps(container)
                 PSI._add_to_jump_expression!(expression[name, t], variable[name, t], mult)
             end
