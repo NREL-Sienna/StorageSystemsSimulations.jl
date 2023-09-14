@@ -219,7 +219,7 @@ function PSI.construct_device!(
 ) where {St <: PSY.Storage, D <: StorageDispatchWithReserves, S <: PM.AbstractPowerModel}
     devices = PSI.get_available_components(St, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
-    PSI.add_variables!(container, PSI.ReactivePowerVariable, devices, U())
+    PSI.add_variables!(container, PSI.ReactivePowerVariable, devices, D())
     PSI.add_to_expression!(
         container,
         PSI.ReactivePowerBalance,
@@ -244,7 +244,7 @@ function PSI.construct_device!(
     model::PSI.DeviceModel{St, D},
     network_model::PSI.NetworkModel{S},
 ) where {St <: PSY.Storage, D <: StorageDispatchWithReserves, S <: PM.AbstractPowerModel}
-    devices = get_available_components(St, sys)
+    devices = PSI.get_available_components(St, sys)
     _active_power_and_energy_bounds(container, devices, model, network_model)
 
     PSI.add_constraints!(

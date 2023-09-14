@@ -14,6 +14,12 @@ PSI.get_variable_lower_bound(::PSI.ActivePowerOutVariable, d::PSY.Storage, ::Abs
 PSI.get_variable_upper_bound(::PSI.ActivePowerOutVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_output_active_power_limits(d).max
 PSI.get_variable_multiplier(::PSI.ActivePowerOutVariable, d::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = 1.0
 
+########################### ReactivePowerVariable, Storage #################################
+PSI.get_variable_binary(::PSI.ReactivePowerVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
+PSI.get_variable_lower_bound(::PSI.ReactivePowerVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_reactive_power_limits(d).min
+PSI.get_variable_upper_bound(::PSI.ReactivePowerVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_reactive_power_limits(d).max
+PSI.get_variable_multiplier(::PSI.ReactivePowerVariable, d::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = 1.0
+
 ############## EnergyVariable, Storage ####################
 PSI.get_variable_binary(::PSI.EnergyVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 PSI.get_variable_upper_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).max
@@ -28,6 +34,9 @@ PSI.get_variable_binary(::AncillaryServiceVariableDischarge, ::Type{<:PSY.Storag
 PSI.get_variable_binary(::AncillaryServiceVariableCharge, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 
 function PSI.get_variable_upper_bound(::PSI.ActivePowerReserveVariable, r::PSY.Reserve, d::PSY.Storage, ::PSI.AbstractReservesFormulation)
+    return PSY.get_max_output_fraction(r) * (PSY.get_output_active_power_limits(d).max + PSY.get_input_active_power_limits(d).max)
+end
+function PSI.get_variable_upper_bound(::PSI.ActivePowerReserveVariable, r::PSY.ReserveDemandCurve, d::PSY.Storage, ::PSI.AbstractReservesFormulation)
     return PSY.get_max_output_fraction(r) * (PSY.get_output_active_power_limits(d).max + PSY.get_input_active_power_limits(d).max)
 end
 
@@ -301,7 +310,9 @@ function PSI.add_variables!(
             variable[name, t] = JuMP.@variable(
                 PSI.get_jump_model(container),
                 base_name = "$(T)_$(PSY.get_name(service))_{$(PSY.get_name(d)), $(t)}",
-                lower_bound = 0.0
+                lower_bound = 0.0,
+                upper_bound =
+                    PSI.get_variable_upper_bound(T(), service, d, formulation)
             )
         end
     end
@@ -611,6 +622,19 @@ function PSI.add_constraints!(
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
 ) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
+    if PSI.has_service_model(model)
+        add_energybalance_with_reserves!(container, devices, model, network_model)
+    else
+        add_energybalance_without_reserves!(container, devices, model, network_model)
+    end
+end
+
+function add_energybalance_with_reserves!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
+    network_model::PSI.NetworkModel{X},
+) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
@@ -666,6 +690,59 @@ function PSI.add_constraints!(
                         (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) /
                         efficiency.out
                     )
+                ) * fraction_of_hour
+            )
+        end
+    end
+    return
+end
+
+function add_energybalance_without_reserves!(
+    container::PSI.OptimizationContainer,
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
+    network_model::PSI.NetworkModel{X},
+) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
+    time_steps = PSI.get_time_steps(container)
+    resolution = PSI.get_resolution(container)
+    fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
+    names = [PSY.get_name(x) for x in devices]
+    initial_conditions = PSI.get_initial_condition(container, PSI.InitialEnergyLevel(), V)
+    energy_var = PSI.get_variable(container, PSI.EnergyVariable(), V)
+
+    powerin_var = PSI.get_variable(container, PSI.ActivePowerInVariable(), V)
+    powerout_var = PSI.get_variable(container, PSI.ActivePowerOutVariable(), V)
+
+    constraint = PSI.add_constraints_container!(
+        container,
+        PSI.EnergyBalanceConstraint(),
+        V,
+        names,
+        time_steps,
+    )
+
+    for ic in initial_conditions
+        device = PSI.get_component(ic)
+        efficiency = PSY.get_efficiency(device)
+        name = PSY.get_name(device)
+        constraint[name, 1] = JuMP.@constraint(
+            PSI.get_jump_model(container),
+            energy_var[name, 1] ==
+            PSI.get_value(ic) +
+            (
+                (powerin_var[name, 1] * efficiency.in) -
+                (powerout_var[name, 1] / efficiency.out)
+            ) * fraction_of_hour
+        )
+
+        for t in time_steps[2:end]
+            constraint[name, t] = JuMP.@constraint(
+                PSI.get_jump_model(container),
+                energy_var[name, t] ==
+                energy_var[name, t - 1] +
+                (
+                    (powerin_var[name, t] * efficiency.in) -
+                    (powerout_var[name, t] / efficiency.out)
                 ) * fraction_of_hour
             )
         end
@@ -1047,12 +1124,12 @@ end
 
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
-    devices::IS.FlattenIteratorWrapper{PSY.BatteryEMS},
-    ::PSI.DeviceModel{PSY.GenericBattery, T},
+    devices::IS.FlattenIteratorWrapper{T},
+    ::PSI.DeviceModel{T, U},
     ::Type{V},
-) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
-    PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
-    PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, T())
+) where {T <: PSY.Storage, U <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
+    PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, U())
+    PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, U())
     return
 end
 
