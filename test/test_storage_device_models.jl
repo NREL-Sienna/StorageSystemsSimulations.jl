@@ -63,7 +63,7 @@ end
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
     model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
-    moi_tests(model, 144, 0, 72, 72, 48, true)
+    moi_tests(model, 98, 0, 72, 72, 25, true)
     psi_checkobjfun_test(model, GAEVF)
 
     device_model = DeviceModel(
@@ -77,7 +77,7 @@ end
     )
     model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
-    moi_tests(model, 144, 0, 72, 72, 48, true)
+    moi_tests(model, 74, 0, 72, 72, 25, false)
     psi_checkobjfun_test(model, GAEVF)
 end
 
@@ -94,7 +94,7 @@ end
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
     model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
-    moi_tests(model, 168, 0, 96, 96, 48, true)
+    moi_tests(model, 122, 0, 96, 96, 25, true)
     psi_checkobjfun_test(model, GAEVF)
 
     device_model = DeviceModel(
@@ -109,7 +109,7 @@ end
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
     model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
-    moi_tests(model, 168, 0, 96, 96, 48, true)
+    moi_tests(model, 98, 0, 96, 96, 25, false)
     psi_checkobjfun_test(model, GAEVF)
 end
 
