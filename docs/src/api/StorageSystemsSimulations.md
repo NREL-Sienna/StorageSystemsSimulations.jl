@@ -24,7 +24,7 @@ Pages = ["StorageSystemsSimulations.md"]
 ```@autodocs
 Modules = [StorageSystemsSimulations]
 Private = false
-Filter = t -> typeof(t) === DataType ? !(t <: Union{StorageSystemsSimulations.AbstractDeviceFormulation, StorageSystemsSimulations.AbstractServiceFormulation}) : true
+Filter = t -> typeof(t) === DataType ? !(t <: Union{StorageSystemsSimulations.AbstractStorageFormulation}) : true
 ```
 
 ## Internal

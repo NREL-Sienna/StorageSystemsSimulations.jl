@@ -1,16 +1,14 @@
-"""
-Struct to dispatch the creation of a variable for energy storage level (state of charge) of upper reservoir
+# Component Variables
 
-Docs abbreviation: ``E^{up}``
-"""
-struct StorageEnergyVariableUp <: PSI.VariableType end
+# Variables Taken from PSI
+# ActivePowerInVariable
+# ActivePowerOutVariable
+# EnergyVariable
+# ReservationVariable
 
-"""
-Struct to dispatch the creation of a variable for energy storage level (state of charge) of lower reservoir
-
-Docs abbreviation: ``E^{down}``
-"""
-struct StorageEnergyVariableDown <: PSI.VariableType end
+# Ancillary Service Assignment Variables
+struct AncillaryServiceVariableDischarge <: PSI.VariableType end
+struct AncillaryServiceVariableCharge <: PSI.VariableType end
 
 """
 Struct to dispatch the creation of a slack variable for energy storage levels < target storage levels
@@ -25,3 +23,6 @@ Struct to dispatch the creation of a slack variable for energy storage levels > 
 Docs abbreviation: ``E^{surplus}``
 """
 struct StorageEnergySurplusVariable <: PSI.VariableType end
+
+struct StorageChargeCyclingSlackVariable <: PSI.VariableType end
+struct StorageDischargeCyclingSlackVariable <: PSI.VariableType end

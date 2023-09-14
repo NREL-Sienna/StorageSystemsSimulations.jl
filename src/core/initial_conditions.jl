@@ -1,2 +1,3 @@
-struct InitialStorageEnergyLevelUp <: PSI.InitialConditionType end
-struct InitialStorageEnergyLevelDown <: PSI.InitialConditionType end
+# Initial Conditions Taken from PSI
+
+# InitialEnergyLevel

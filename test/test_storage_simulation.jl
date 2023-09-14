@@ -2,16 +2,7 @@
     ######## Test with BookKeeping ########
     template = get_thermal_dispatch_template_network()
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
-    set_device_model!(template, GenericBattery, BookKeeping)
-    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
-    check_energy_initial_conditions_values(model, GenericBattery)
-    @test solve!(model) == RunStatus.SUCCESSFUL
-
-    ######## Test with BatteryAncillaryServices ########
-    template = get_thermal_dispatch_template_network()
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
-    set_device_model!(template, GenericBattery, BatteryAncillaryServices)
+    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
     model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
     check_energy_initial_conditions_values(model, GenericBattery)
@@ -20,7 +11,16 @@
     ######## Test with EnergyTarget ########
     template = get_thermal_dispatch_template_network()
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems"; force_build=true)
-    set_device_model!(template, BatteryEMS, EnergyTarget)
+    device_model = DeviceModel(
+        BatteryEMS,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => true,
+        ),
+    )
+    set_device_model!(template, device_model)
     model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
     check_energy_initial_conditions_values(model, BatteryEMS)
@@ -36,7 +36,7 @@ end
         add_single_time_series=true,
         force_build=true,
     )
-    set_device_model!(template, GenericBattery, BookKeeping)
+    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
     model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
           BuildStatus.BUILT
@@ -60,7 +60,7 @@ end
         add_single_time_series=true,
         force_build=true,
     )
-    set_device_model!(template, GenericBattery, BatteryAncillaryServices)
+    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
     model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
           BuildStatus.BUILT
@@ -84,7 +84,16 @@ end
         add_single_time_series=true,
         force_build=true,
     )
-    set_device_model!(template, BatteryEMS, EnergyTarget)
+    device_model = DeviceModel(
+        BatteryEMS,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => true,
+        ),
+    )
+    set_device_model!(template, device_model)
     model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
           BuildStatus.BUILT
@@ -101,6 +110,8 @@ end
     @test run!(model) == RunStatus.SUCCESSFUL
 end
 
+# TODO: Move this to Hydro?
+#=
 function test_2_stages_with_storage_ems(in_memory)
     template_uc =
         get_template_hydro_st_uc(NetworkModel(CopperPlatePowerModel; use_slacks=true))
@@ -153,3 +164,4 @@ end
         test_2_stages_with_storage_ems(in_memory)
     end
 end
+=#

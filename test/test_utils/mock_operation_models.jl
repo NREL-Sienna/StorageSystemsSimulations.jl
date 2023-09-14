@@ -116,6 +116,7 @@ function mock_construct_device!(
         PSI.get_optimization_container(problem),
         PSI.get_network_formulation(template),
         PSI.get_network_model(template).subnetworks,
+        PSI.get_system(problem),
     )
     if PSI.validate_available_devices(model, PSI.get_system(problem))
         PSI.construct_device!(
@@ -139,7 +140,7 @@ function mock_construct_device!(
     JuMP.@objective(
         PSI.get_jump_model(problem),
         MOI.MIN_SENSE,
-        PSI.get_objective_function(
+        PSI.get_objective_expression(
             PSI.get_optimization_container(problem).objective_function,
         )
     )
