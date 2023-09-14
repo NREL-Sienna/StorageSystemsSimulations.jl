@@ -248,6 +248,18 @@ function add_reserve_range_constraint_with_deployment!(
     end
 end
 
+function PSI.add_constraints!(
+    container::PSI.OptimizationContainer,
+    T::Type{<:PSI.ReactivePowerVariableLimitsConstraint},
+    U::Type{<:PSI.ReactivePowerVariable},
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, W},
+    ::PSI.NetworkModel{X},
+) where {V <: PSY.Storage, W <: AbstractStorageFormulation, X <: PM.AbstractPowerModel}
+    PSI.add_range_constraints!(container, T, U, devices, model, X)
+    return
+end
+
 ############################# Energy Constraints ###########################
 """
 Min and max limits for Energy Capacity Constraint and AbstractStorageFormulation
