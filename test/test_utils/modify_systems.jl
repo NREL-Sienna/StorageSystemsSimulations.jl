@@ -49,7 +49,7 @@ function add_battery_to_bus!(sys::System, bus_name::String)
     bus = get_component(Bus, sys, bus_name)
     bat = _build_battery(bus, 8.0, 4.0, 0.93, 0.93)
     add_component!(sys, bat)
-    for s in get_components(Reserve, sys_rts_da)
+    for s in get_components(Reserve, sys)
         add_service!(bat, s, sys)
     end
     return
