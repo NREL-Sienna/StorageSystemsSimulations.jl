@@ -68,6 +68,7 @@ include("core/variables.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
 include("core/initial_conditions.jl")
+include("core/feedforward.jl")
 
 # device models
 include("storage_models.jl")
