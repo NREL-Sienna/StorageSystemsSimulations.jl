@@ -83,58 +83,112 @@ function PSI.add_feedforward_constraints!(
     return
 end
 
-#=
-# TODO: Check if this is should be restored
-function PSI._add_variable_cost_to_objective!(
-    container::PSI.OptimizationContainer,
-    ::T,
-    component::U,
-    op_cost::PSY.MarketBidCost,
-    ::V,
-) where {T <: PSI.EnergySurplusVariable, U <: PSY.Storage, V <: EnergyValueCurve}
-    component_name = PSY.get_name(component)
-    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
-    time_steps = PSI.get_time_steps(container)
-    initial_time = PSI.get_initial_time(container)
-    variable_cost_forecast = PSY.get_variable_cost(
-        component,
-        op_cost;
-        start_time=initial_time,
-        len=length(time_steps),
-    )
-    variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
-    parameter_container = PSI._get_cost_function_parameter_container(
-        container,
-        PSI.CostFunctionParameter(),
-        component,
-        T(),
-        V(),
-        eltype(variable_cost_forecast_values),
-    )
-    pwl_cost_expressions =
-        PSI._add_pwl_term!(container, component, variable_cost_forecast_values, T(), V())
-    jump_model = PSI.get_jump_model(container)
-    for t in time_steps
-        PSI.set_parameter!(
-            parameter_container,
-            jump_model,
-            PSY.get_cost(variable_cost_forecast_values[t]),
-            # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
-            #  of base power times the time delta.
-            1.0,
-            component_name,
-            t,
+"""
+Adds a constraint to limit the sum of a variable over the number of periods to the source value
+"""
+struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
+    optimization_container_key::PSI.OptimizationContainerKey
+    affected_values::Vector{<:PSI.OptimizationContainerKey}
+    number_of_periods::Int
+    function EnergyLimitFeedforward(;
+        component_type::Type{<:PSY.Component},
+        source::Type{T},
+        affected_values::Vector{DataType},
+        number_of_periods::Int,
+        meta = CONTAINER_KEY_EMPTY_META,
+    ) where {T}
+        values_vector = Vector{VariableKey}(undef, length(affected_values))
+        for (ix, v) in enumerate(affected_values)
+            if v <: VariableType
+                values_vector[ix] =
+                PSI.get_optimization_container_key(v(), component_type, meta)
+            else
+                error(
+                    "EnergyLimitFeedforward is only compatible with VariableType or ParamterType affected values",
+                )
+            end
+        end
+        new(
+            PSI.get_optimization_container_key(T(), component_type, meta),
+            values_vector,
+            number_of_periods,
         )
-        PSI.add_to_expression!(
-            container,
-            PSI.ProductionCostExpression,
-            pwl_cost_expressions[t],
-            component,
-            t,
-        )
-        PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
     end
+end
 
+PSI.get_default_parameter_type(::EnergyLimitFeedforward, _) = EnergyLimitParameter
+PSI.get_optimization_container_key(ff) = ff.optimization_container_key
+PSI.get_number_of_periods(ff) = ff.number_of_periods
+
+@doc raw"""
+        add_feedforward_constraints(container::OptimizationContainer,
+                        cons_name::Symbol,
+                        param_reference,
+                        var_key::VariableKey)
+
+Constructs a parameterized integral limit constraint to implement feedforward from other models.
+The Parameters are initialized using the upper boundary values of the provided variables.
+
+
+``` sum(variable[var_name, t] for t in 1:affected_periods)/affected_periods <= param_reference[var_name] ```
+
+# LaTeX
+
+`` \sum_{t} x \leq param^{max}``
+
+# Arguments
+* container::OptimizationContainer : the optimization_container model built in PowerSimulations
+* model::DeviceModel : the device model
+* devices::IS.FlattenIteratorWrapper{T} : list of devices
+* ff::FixValueFeedforward : a instance of the FixValue Feedforward
+"""
+function add_feedforward_constraints!(
+    container::OptimizationContainer,
+    ::DeviceModel,
+    devices::IS.FlattenIteratorWrapper{T},
+    ff::EnergyLimitFeedforward,
+) where {T <: PSY.Component}
+    time_steps = get_time_steps(container)
+    parameter_type = get_default_parameter_type(ff, T)
+    param = get_parameter_array(container, parameter_type(), T)
+    multiplier = get_parameter_multiplier_array(container, parameter_type(), T)
+    affected_periods = get_number_of_periods(ff)
+    for var in get_affected_values(ff)
+        variable = get_variable(container, var)
+        set_name, set_time = JuMP.axes(variable)
+        IS.@assert_op set_name == [PSY.get_name(d) for d in devices]
+        IS.@assert_op set_time == time_steps
+
+        if affected_periods > set_time[end]
+            error(
+                "The number of affected periods $affected_periods is larger than the periods available $(set_time[end])",
+            )
+        end
+        no_trenches = set_time[end] ÷ affected_periods
+        var_type = get_entry_type(var)
+        con_ub = add_constraints_container!(
+            container,
+            FeedforwardIntegralLimitConstraint(),
+            T,
+            set_name,
+            1:no_trenches;
+            meta = "$(var_type)integral",
+        )
+
+        for name in set_name, i in 1:no_trenches
+            con_ub[name, i] = JuMP.@constraint(
+                container.JuMPmodel,
+                sum(
+                    variable[name, t] for
+                    t in (1 + (i - 1) * affected_periods):(i * affected_periods)
+                ) <= sum(
+                    param[name, t] * multiplier[name, t] for
+                    t in (1 + (i - 1) * affected_periods):(i * affected_periods)
+                )
+            )
+        end
+    end
     return
 end
-=#
+
+# TODO: It also needs the add parameters code
