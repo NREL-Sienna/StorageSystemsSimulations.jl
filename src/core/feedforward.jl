@@ -1,8 +1,48 @@
+"""
+Adds a constraint to enforce a minimum energy level target with a slack variable associated witha penalty term.
+"""
+struct EnergyTargetFeedforward <: PSI.AbstractAffectFeedforward
+    optimization_container_key::PSI.OptimizationContainerKey
+    affected_values::Vector{<:PSI.OptimizationContainerKey}
+    target_period::Int
+    penalty_cost::Float64
+    function EnergyTargetFeedforward(;
+        component_type::Type{<:PSY.Component},
+        source::Type{T},
+        affected_values::Vector{DataType},
+        target_period::Int,
+        penalty_cost::Float64,
+        meta=PSI.CONTAINER_KEY_EMPTY_META,
+    ) where {T}
+        values_vector = Vector{PSI.VariableKey}(undef, length(affected_values))
+        for (ix, v) in enumerate(affected_values)
+            if v <: PSI.VariableType
+                values_vector[ix] =
+                    PSI.get_optimization_container_key(v(), component_type, meta)
+            else
+                error(
+                    "EnergyTargetFeedforward is only compatible with VariableType or ParamterType affected values",
+                )
+            end
+        end
+        new(
+            PSI.get_optimization_container_key(T(), component_type, meta),
+            values_vector,
+            target_period,
+            penalty_cost,
+        )
+    end
+end
+
+PSI.get_default_parameter_type(::EnergyTargetFeedforward, _) = EnergyTargetParameter
+PSI.get_optimization_container_key(ff::EnergyTargetFeedforward) =
+    ff.optimization_container_key
+
 function PSI._add_feedforward_arguments!(
     container::PSI.OptimizationContainer,
     model::PSI.DeviceModel,
     devices::IS.FlattenIteratorWrapper{T},
-    ff::PSI.EnergyTargetFeedforward,
+    ff::EnergyTargetFeedforward,
 ) where {T <: PSY.Storage}
     parameter_type = PSI.get_default_parameter_type(ff, T)
     PSI.add_parameters!(container, parameter_type, ff, model, devices)
@@ -43,7 +83,7 @@ function PSI.add_feedforward_constraints!(
     container::PSI.OptimizationContainer,
     ::PSI.DeviceModel{T, U},
     devices::IS.FlattenIteratorWrapper{T},
-    ff::PSI.EnergyTargetFeedforward,
+    ff::EnergyTargetFeedforward,
 ) where {T <: PSY.Storage, U <: AbstractStorageFormulation}
     time_steps = PSI.get_time_steps(container)
     parameter_type = PSI.get_default_parameter_type(ff, T)
@@ -95,13 +135,13 @@ struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
         source::Type{T},
         affected_values::Vector{DataType},
         number_of_periods::Int,
-        meta = CONTAINER_KEY_EMPTY_META,
+        meta=PSI.CONTAINER_KEY_EMPTY_META,
     ) where {T}
         values_vector = Vector{VariableKey}(undef, length(affected_values))
         for (ix, v) in enumerate(affected_values)
             if v <: VariableType
                 values_vector[ix] =
-                PSI.get_optimization_container_key(v(), component_type, meta)
+                    PSI.get_optimization_container_key(v(), component_type, meta)
             else
                 error(
                     "EnergyLimitFeedforward is only compatible with VariableType or ParamterType affected values",
@@ -118,7 +158,7 @@ end
 
 PSI.get_default_parameter_type(::EnergyLimitFeedforward, _) = EnergyLimitParameter
 PSI.get_optimization_container_key(ff) = ff.optimization_container_key
-PSI.get_number_of_periods(ff) = ff.number_of_periods
+get_number_of_periods(ff) = ff.number_of_periods
 
 @doc raw"""
         add_feedforward_constraints(container::OptimizationContainer,
@@ -143,18 +183,18 @@ The Parameters are initialized using the upper boundary values of the provided v
 * ff::FixValueFeedforward : a instance of the FixValue Feedforward
 """
 function add_feedforward_constraints!(
-    container::OptimizationContainer,
-    ::DeviceModel,
+    container::PSI.OptimizationContainer,
+    ::PSI.DeviceModel,
     devices::IS.FlattenIteratorWrapper{T},
     ff::EnergyLimitFeedforward,
 ) where {T <: PSY.Component}
-    time_steps = get_time_steps(container)
-    parameter_type = get_default_parameter_type(ff, T)
-    param = get_parameter_array(container, parameter_type(), T)
-    multiplier = get_parameter_multiplier_array(container, parameter_type(), T)
+    time_steps = PSI.get_time_steps(container)
+    parameter_type = PSI.get_default_parameter_type(ff, T)
+    param = PSI.get_parameter_array(container, parameter_type(), T)
+    multiplier = PSI.get_parameter_multiplier_array(container, parameter_type(), T)
     affected_periods = get_number_of_periods(ff)
-    for var in get_affected_values(ff)
-        variable = get_variable(container, var)
+    for var in PSI.get_affected_values(ff)
+        variable = PSI.get_variable(container, var)
         set_name, set_time = JuMP.axes(variable)
         IS.@assert_op set_name == [PSY.get_name(d) for d in devices]
         IS.@assert_op set_time == time_steps
@@ -165,14 +205,14 @@ function add_feedforward_constraints!(
             )
         end
         no_trenches = set_time[end] ÷ affected_periods
-        var_type = get_entry_type(var)
-        con_ub = add_constraints_container!(
+        var_type = PSI.get_entry_type(var)
+        con_ub = PSI.add_constraints_container!(
             container,
             FeedforwardIntegralLimitConstraint(),
             T,
             set_name,
             1:no_trenches;
-            meta = "$(var_type)integral",
+            meta="$(var_type)integral",
         )
 
         for name in set_name, i in 1:no_trenches
@@ -192,3 +232,87 @@ function add_feedforward_constraints!(
 end
 
 # TODO: It also needs the add parameters code
+
+function PSI.update_parameter_values!(
+    model::PSI.OperationModel,
+    key::PSI.ParameterKey{T, U},
+    input::PSI.DatasetContainer{PSI.InMemoryDataset},
+) where {T <: EnergyLimitParameter, U <: PSY.Generator}
+    # Enable again for detailed debugging
+    # TimerOutputs.@timeit RUN_SIMULATION_TIMER "$T $U Parameter Update" begin
+    optimization_container = PSI.get_optimization_container(model)
+    # Note: Do not instantite a new key here because it might not match the param keys in the container
+    # if the keys have strings in the meta fields
+    parameter_array = PSI.get_parameter_array(optimization_container, key)
+    parameter_attributes = PSI.get_parameter_attributes(optimization_container, key)
+    internal = PSI.get_internal(model)
+    execution_count = internal.execution_count
+    current_time = PSI.get_current_time(model)
+    state_values =
+        PSI.get_dataset_values(input, PSI.get_attribute_key(parameter_attributes))
+    component_names, time = axes(parameter_array)
+    resolution = PSI.get_resolution(model)
+    interval_time_steps =
+        Int(PSI.get_interval(model.internal.store_parameters) / resolution)
+    state_data = PSI.get_dataset(input, PSI.get_attribute_key(parameter_attributes))
+    state_timestamps = state_data.timestamps
+    max_state_index = PSI.get_num_rows(state_data)
+
+    state_data_index = PSI.find_timestamp_index(state_timestamps, current_time)
+    sim_timestamps = range(current_time; step=resolution, length=time[end])
+    old_parameter_values = jump_value.(parameter_array)
+    # The current method uses older parameter values because when passing the energy output from one stage
+    # to the next, the aux variable values gets over-written by the lower level model after its solve.
+    # This approach is a temporary hack and will be replaced in future versions.
+    for t in time
+        timestamp_ix = min(max_state_index, state_data_index + 1)
+        @debug "parameter horizon is over the step" max_state_index > state_data_index + 1
+        if state_timestamps[timestamp_ix] <= sim_timestamps[t]
+            state_data_index = timestamp_ix
+        end
+        for name in component_names
+            # the if statement checks if its the first solve of the model and uses the values stored in the state
+            # and for subsequent solves uses the state data to update the parameter values for the last set of time periods
+            # that are equal to the length of the interval i.e. the time periods that dont overlap between each solves.
+            if execution_count == 0 || t > time[end] - interval_time_steps
+                # Pass indices in this way since JuMP DenseAxisArray don't support view()
+                state_value = state_values[name, state_data_index]
+                if !isfinite(state_value)
+                    error(
+                        "The value for the system state used in $(encode_key_as_string(key)) is not a finite value $(state_value) \
+                         This is commonly caused by referencing a state value at a time when such decision hasn't been made. \
+                         Consider reviewing your models' horizon and interval definitions",
+                    )
+                end
+                PSI._set_param_value!(parameter_array, state_value, name, t)
+            else
+                # Currently the update method relies on using older parameter values of the EnergyLimitParameter
+                # to update the parameter for overlapping periods between solves i.e. we ingoring the parameter values
+                # in the model interval time periods.
+                state_value = state_values[name, state_data_index]
+                if !isfinite(state_value)
+                    error(
+                        "The value for the system state used in $(encode_key_as_string(key)) is not a finite value $(state_value) \
+                         This is commonly caused by referencing a state value at a time when such decision hasn't been made. \
+                         Consider reviewing your models' horizon and interval definitions",
+                    )
+                end
+                PSI._set_param_value!(
+                    parameter_array,
+                    old_parameter_values[name, t + interval_time_steps],
+                    name,
+                    t,
+                )
+            end
+        end
+    end
+
+    IS.@record :execution PSI.ParameterUpdateEvent(
+        T,
+        U,
+        parameter_attributes,
+        PSI.get_current_timestamp(model),
+        PSI.get_name(model),
+    )
+    return
+end

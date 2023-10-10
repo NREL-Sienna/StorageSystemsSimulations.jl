@@ -21,6 +21,10 @@ export ReserveCoverageConstraint
 export ReserveCoverageConstraintEndOfPeriod
 export StorageTotalReserveConstraint
 
+# FF
+export EnergyTargetFeedforward
+export EnergyLimitFeedforward
+
 #################################################################################
 # Imports
 import Logging
@@ -67,6 +71,7 @@ include("core/formulations.jl")
 include("core/variables.jl")
 include("core/constraints.jl")
 include("core/expressions.jl")
+include("core/parameters.jl")
 include("core/initial_conditions.jl")
 include("core/feedforward.jl")
 

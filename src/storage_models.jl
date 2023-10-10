@@ -76,7 +76,7 @@ PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerInVariable, 
 
 ######################## Parameters ##################################################
 
-PSI.get_parameter_multiplier(::PSI.EnergyTargetParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
+PSI.get_parameter_multiplier(::EnergyTargetParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 
 
 
