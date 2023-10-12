@@ -110,24 +110,33 @@ end
     @test run!(model) == RunStatus.SUCCESSFUL
 end
 
-# TODO: Move this to Hydro?
-#=
-function test_2_stages_with_storage_ems(in_memory)
-    template_uc =
-        get_template_hydro_st_uc(NetworkModel(CopperPlatePowerModel; use_slacks=true))
-    template_ed =
-        get_template_hydro_st_ed(NetworkModel(CopperPlatePowerModel; use_slacks=true))
-    set_device_model!(template_ed, InterruptiblePowerLoad, StaticPowerLoad)
-    c_sys5_hy_uc = PSB.build_system(PSITestSystems, "c_sys5_hy_ems_uc")
-    c_sys5_hy_ed = PSB.build_system(PSITestSystems, "c_sys5_hy_ems_ed")
+@testset "Simulation with 2-Stages EnergyLimitFeedforward with GenericBattery" begin
+    sys_uc = build_system(PSITestSystems, "c_sys5_bat")
+    sys_ed = build_system(PSITestSystems, "c_sys5_bat")
+
+    template_uc = get_template_basic_uc_storage_simulation()
+    template_ed = get_template_dispatch_storage_simulation()
+
     models = SimulationModels(;
         decision_models=[
-            DecisionModel(template_uc, c_sys5_hy_uc; name="UC", optimizer=GLPK_optimizer),
-            DecisionModel(template_ed, c_sys5_hy_ed; name="ED", optimizer=GLPK_optimizer),
+            DecisionModel(
+                template_uc,
+                sys_uc;
+                name="UC",
+                optimizer=GLPK_optimizer,
+                store_variable_names=true,
+            ),
+            DecisionModel(
+                template_ed,
+                sys_ed;
+                name="ED",
+                optimizer=GLPK_optimizer,
+                store_variable_names=true,
+            ),
         ],
     )
 
-    sequence_cache = SimulationSequence(;
+    sequence = SimulationSequence(;
         models=models,
         feedforwards=Dict(
             "ED" => [
@@ -137,31 +146,37 @@ function test_2_stages_with_storage_ems(in_memory)
                     affected_values=[ActivePowerVariable],
                 ),
                 EnergyLimitFeedforward(;
-                    component_type=HydroEnergyReservoir,
-                    source=ActivePowerVariable,
-                    affected_values=[ActivePowerVariable],
+                    component_type=GenericBattery,
+                    source=ActivePowerOutVariable,
+                    affected_values=[ActivePowerOutVariable],
                     number_of_periods=12,
                 ),
             ],
         ),
         ini_cond_chronology=InterProblemChronology(),
     )
+
     sim_cache = Simulation(;
-        name="cache",
+        name="sim",
         steps=2,
         models=models,
-        sequence=sequence_cache,
+        sequence=sequence,
         simulation_folder=mktempdir(; cleanup=true),
     )
+
     build_out = build!(sim_cache)
     @test build_out == PSI.BuildStatus.BUILT
-    execute_out = execute!(sim_cache; in_memory=in_memory)
-    @test execute_out == PSI.RunStatus.SUCCESSFUL
-end
 
-@testset "Simulation with 2-Stages with Storage EMS" begin
-    for in_memory in (true, false)
-        test_2_stages_with_storage_ems(in_memory)
-    end
+    execute_out = execute!(sim_cache)
+    @test execute_out == PSI.RunStatus.SUCCESSFUL
+
+    # Test UC Vars are equal to ED params
+    res = SimulationResults(sim_cache)
+    res_ed = res.decision_problem_results["ED"]
+    param_ed = read_realized_parameter(res_ed, "EnergyLimitParameter__GenericBattery")
+
+    res_uc = res.decision_problem_results["UC"]
+    p_out_bat = read_realized_variable(res_uc, "ActivePowerOutVariable__GenericBattery")
+
+    @test isapprox(param_ed[!, 2], p_out_bat[!, 2] / 100.0; atol=1e-4)
 end
-=#

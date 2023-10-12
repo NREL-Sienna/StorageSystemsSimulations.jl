@@ -73,3 +73,39 @@ function get_template_dispatch_with_network(network=StandardPTDFModel)
     set_device_model!(template, TwoTerminalHVDCLine, HVDCTwoTerminalLossless)
     return template
 end
+
+function get_template_basic_uc_storage_simulation()
+    template = ProblemTemplate(CopperPlatePowerModel)
+    set_device_model!(template, ThermalStandard, ThermalBasicUnitCommitment)
+    set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
+    set_device_model!(template, PowerLoad, StaticPowerLoad)
+    device_model = DeviceModel(
+        GenericBattery,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => false,
+        ),
+    )
+    set_device_model!(template, device_model)
+    return template
+end
+
+function get_template_dispatch_storage_simulation()
+    template = ProblemTemplate(CopperPlatePowerModel)
+    set_device_model!(template, ThermalStandard, ThermalBasicDispatch)
+    set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
+    set_device_model!(template, PowerLoad, StaticPowerLoad)
+    device_model = DeviceModel(
+        GenericBattery,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => false,
+        ),
+    )
+    set_device_model!(template, device_model)
+    return template
+end
