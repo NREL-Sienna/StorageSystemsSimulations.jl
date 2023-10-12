@@ -137,9 +137,9 @@ struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
         number_of_periods::Int,
         meta=PSI.CONTAINER_KEY_EMPTY_META,
     ) where {T}
-        values_vector = Vector{VariableKey}(undef, length(affected_values))
+        values_vector = Vector{PSI.VariableKey}(undef, length(affected_values))
         for (ix, v) in enumerate(affected_values)
-            if v <: VariableType
+            if v <: PSI.VariableType
                 values_vector[ix] =
                     PSI.get_optimization_container_key(v(), component_type, meta)
             else
@@ -182,7 +182,7 @@ The Parameters are initialized using the upper boundary values of the provided v
 * devices::IS.FlattenIteratorWrapper{T} : list of devices
 * ff::FixValueFeedforward : a instance of the FixValue Feedforward
 """
-function add_feedforward_constraints!(
+function PSI.add_feedforward_constraints!(
     container::PSI.OptimizationContainer,
     ::PSI.DeviceModel,
     devices::IS.FlattenIteratorWrapper{T},
@@ -208,7 +208,7 @@ function add_feedforward_constraints!(
         var_type = PSI.get_entry_type(var)
         con_ub = PSI.add_constraints_container!(
             container,
-            FeedforwardIntegralLimitConstraint(),
+            PSI.FeedforwardIntegralLimitConstraint(),
             T,
             set_name,
             1:no_trenches;
