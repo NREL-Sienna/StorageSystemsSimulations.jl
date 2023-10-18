@@ -895,6 +895,35 @@ function PSI.add_constraints!(
     initial_conditions = PSI.get_initial_condition(container, PSI.InitialEnergyLevel(), V)
     energy_var = PSI.get_variable(container, PSI.EnergyVariable(), V)
 
+    services_set = Set()
+    for ic in initial_conditions
+        storage = PSI.get_component(ic)
+        union!(services_set, PSY.get_services(storage))
+    end
+
+    for service in services_set
+        service_name = PSY.get_name(service)
+        if typeof(service) <: PSY.Reserve{PSY.ReserveUp}
+            PSI.add_constraints_container!(
+                container,
+                T(),
+                V,
+                names,
+                time_steps,
+                meta="$(typeof(service))_$(service_name)_discharge",
+            )
+        elseif typeof(service) <: PSY.Reserve{PSY.ReserveDown}
+            PSI.add_constraints_container!(
+                container,
+                T(),
+                V,
+                names,
+                time_steps,
+                meta="$(typeof(service))_$(service_name)_charge",
+            )
+        end
+    end
+
     for ic in initial_conditions
         storage = PSI.get_component(ic)
         ci_name = PSY.get_name(storage)
@@ -920,13 +949,11 @@ function PSI.add_constraints!(
                 "$(typeof(service))_$service_name",
             )
             if typeof(service) <: PSY.Reserve{PSY.ReserveUp}
-                con_discharge = PSI.add_constraints_container!(
+                con_discharge = PSI.get_constraint(
                     container,
                     T(),
                     V,
-                    names,
-                    time_steps,
-                    meta="$(typeof(service))_$(service_name)_discharge",
+                    "$(typeof(service))_$(service_name)_discharge",
                 )
 
                 if time_offset(T) == -1
@@ -952,13 +979,11 @@ function PSI.add_constraints!(
                     )
                 end
             elseif typeof(service) <: PSY.Reserve{PSY.ReserveDown}
-                con_charge = PSI.add_constraints_container!(
+                con_charge = PSI.get_constraint(
                     container,
                     T(),
                     V,
-                    names,
-                    time_steps,
-                    meta="$(typeof(service))_$(service_name)_charge",
+                    "$(typeof(service))_$(service_name)_charge",
                 )
                 if time_offset(T) == -1
                     con_charge[ci_name, 1] = JuMP.@constraint(
