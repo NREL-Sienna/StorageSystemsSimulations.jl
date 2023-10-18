@@ -1,7 +1,7 @@
 name = "StorageSystemsSimulations"
 uuid = "e2f1a126-19d0-4674-9252-42b2384f8e3c"
 authors = ["Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
