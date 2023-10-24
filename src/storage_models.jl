@@ -604,7 +604,7 @@ function add_to_expression!(
         services = PSY.get_services(d)
         for s in services
             s_name = PSY.get_name(s)
-            expression = PSI.get_expression(container, T(), typeof(s), s_name)
+            expression = PSI.get_expression(container, T(), V, "$(typeof(s))_$(s_name)")
             variable = PSI.get_variable(container, U(), V, "$(typeof(s))_$s_name")
             for t in PSI.get_time_steps(container)
                 PSI._add_to_jump_expression!(expression[name, t], variable[name, t], 1.0)
@@ -630,7 +630,7 @@ function PSI.add_to_expression!(
     for d in devices
         name = PSY.get_name(d)
         s_name = PSI.get_service_name(service_model)
-        expression = PSI.get_expression(container, T(), V, s_name)
+        expression = PSI.get_expression(container, T(), UV, "$(V)_$(s_name)")
         variable = PSI.get_variable(container, U(), V, s_name)
         for t in PSI.get_time_steps(container)
             PSI._add_to_jump_expression!(expression[name, t], variable[name, t], -1.0)
@@ -1031,8 +1031,12 @@ function PSI.add_constraints!(
 
     for s in services
         s_name = PSY.get_name(s)
-        expression =
-            PSI.get_expression(container, TotalReserveOffering(), typeof(s), "$s_name")
+        expression = PSI.get_expression(
+            container,
+            TotalReserveOffering(),
+            V,
+            "$(typeof(s))_$(s_name)",
+        )
         device_names, time_steps = axes(expression)
         constraint_container = PSI.add_constraints_container!(
             container,
@@ -1040,7 +1044,7 @@ function PSI.add_constraints!(
             typeof(s),
             device_names,
             time_steps,
-            meta="$s_name",
+            meta="$(s_name)_$V",
         )
         for name in device_names, t in time_steps
             constraint_container[name, t] =

@@ -57,10 +57,10 @@ function _add_ancillary_services!(
         PSI.lazy_container_addition!(
             container,
             TotalReserveOffering(),
-            typeof(s),
+            T,
             PSY.get_name.(devices),
             time_steps,
-            meta=PSY.get_name(s),
+            meta="$(typeof(s))_$(PSY.get_name(s))",
         )
     end
 
