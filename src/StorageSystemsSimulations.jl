@@ -26,8 +26,6 @@ export EnergyTargetFeedforward
 export EnergyLimitFeedforward
 
 #################################################################################
-# Imports
-import Logging
 # Modeling Imports
 import JuMP
 import JuMP: optimizer_with_attributes
