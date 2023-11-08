@@ -19,6 +19,8 @@ export StorageCyclingCharge
 export StorageCyclingDischarge
 export ReserveCoverageConstraint
 export ReserveCoverageConstraintEndOfPeriod
+export ReserveCompleteCoverageConstraint
+export ReserveCompleteCoverageConstraintEndOfPeriod
 export StorageTotalReserveConstraint
 
 # FF

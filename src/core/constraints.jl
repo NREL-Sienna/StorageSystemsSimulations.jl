@@ -16,4 +16,6 @@ struct ReserveDischargeConstraint <: PSI.ConstraintType end
 struct ReserveChargeConstraint <: PSI.ConstraintType end
 struct ReserveCoverageConstraint <: PSI.ConstraintType end
 struct ReserveCoverageConstraintEndOfPeriod <: PSI.ConstraintType end
+struct ReserveCompleteCoverageConstraint <: PSI.ConstraintType end
+struct ReserveCompleteCoverageConstraintEndOfPeriod <: PSI.ConstraintType end
 struct StorageTotalReserveConstraint <: PSI.ConstraintType end
