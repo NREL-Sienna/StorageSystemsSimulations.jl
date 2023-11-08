@@ -520,16 +520,19 @@ PSI.get_variable_multiplier(
     ::PSY.Reserve{PSY.ReserveDown},
 ) = 0.0
 
+#! format: off
+# Use 1.0 because this is to allow to reuse the code below on add_to_expression
 get_fraction(::Type{ReserveAssignmentBalanceUpDischarge}, d::PSY.Reserve) = 1.0
 get_fraction(::Type{ReserveAssignmentBalanceUpCharge}, d::PSY.Reserve) = 1.0
 get_fraction(::Type{ReserveAssignmentBalanceDownDischarge}, d::PSY.Reserve) = 1.0
 get_fraction(::Type{ReserveAssignmentBalanceDownCharge}, d::PSY.Reserve) = 1.0
 
 # Needs to implement served fraction in PSY
-get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::PSY.Reserve) = 0.2
-get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::PSY.Reserve) = 0.2
-get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = 0.3
-get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = 0.3
+get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
+#! format: on
 
 function add_to_expression!(
     container::PSI.OptimizationContainer,
