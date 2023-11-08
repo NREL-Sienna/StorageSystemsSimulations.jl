@@ -17,6 +17,7 @@ const PSI = PowerSimulations
 const PM = PSI.PowerModels
 const PNM = PSI.PowerNetworkMatrices
 const MOI = PSI.MathOptInterface
+const SSS = StorageSystemsSimulations
 
 import Aqua
 Aqua.test_unbound_args(StorageSystemsSimulations)
