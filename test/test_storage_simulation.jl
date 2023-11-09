@@ -147,7 +147,7 @@ end
                     source=OnVariable,
                     affected_values=[ActivePowerVariable],
                 ),
-                SSS.EnergyLimitFeedforward(;
+                EnergyLimitFeedforward(;
                     component_type=GenericBattery,
                     source=ActivePowerOutVariable,
                     affected_values=[ActivePowerOutVariable],
