@@ -221,6 +221,12 @@ function PSI.construct_device!(
     devices = PSI.get_available_components(St, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
     PSI.add_variables!(container, PSI.ReactivePowerVariable, devices, D())
+
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_variables!(container, StorageRegularizationVariableCharge, devices, D())
+        PSI.add_variables!(container, StorageRegularizationVariableDischarge, devices, D())
+    end
+
     PSI.add_to_expression!(
         container,
         PSI.ReactivePowerBalance,
@@ -289,6 +295,10 @@ function PSI.construct_device!(
             model,
             network_model,
         )
+    end
+
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_constraints!(container, StorageRegularizationConstraints, devices, D())
     end
 
     PSI.add_constraint_dual!(container, sys, model)
