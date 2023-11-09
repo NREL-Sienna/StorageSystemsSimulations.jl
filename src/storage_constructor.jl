@@ -113,6 +113,7 @@ function _add_ancillary_services!(
 
     return
 end
+
 function _active_power_variables_and_expressions(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
@@ -363,6 +364,25 @@ function PSI.construct_device!(
             model,
             network_model,
         )
+    end
+
+    if PSI.has_service_model(model)
+        if PSI.get_attribute(model, "complete_coverage")
+            PSI.add_constraints!(
+                container,
+                ReserveCompleteCoverageConstraint,
+                devices,
+                model,
+                network_model,
+            )
+            PSI.add_constraints!(
+                container,
+                ReserveCompleteCoverageConstraintEndOfPeriod,
+                devices,
+                model,
+                network_model,
+            )
+        end
     end
 
     PSI.add_feedforward_constraints!(container, model, devices)

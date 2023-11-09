@@ -18,6 +18,7 @@
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => false,
         ),
     )
     set_device_model!(template, device_model)
@@ -91,6 +92,7 @@ end
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => true,
         ),
     )
     set_device_model!(template, device_model)
