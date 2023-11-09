@@ -26,3 +26,5 @@ struct StorageEnergySurplusVariable <: PSI.VariableType end
 
 struct StorageChargeCyclingSlackVariable <: PSI.VariableType end
 struct StorageDischargeCyclingSlackVariable <: PSI.VariableType end
+
+struct RegularizationVariable <: PSI.Variable end
