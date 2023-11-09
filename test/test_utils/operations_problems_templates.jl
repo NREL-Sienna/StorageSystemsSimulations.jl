@@ -86,6 +86,8 @@ function get_template_basic_uc_storage_simulation()
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     set_device_model!(template, device_model)
@@ -104,6 +106,8 @@ function get_template_dispatch_storage_simulation()
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     set_device_model!(template, device_model)
