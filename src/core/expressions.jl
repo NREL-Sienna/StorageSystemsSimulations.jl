@@ -14,3 +14,6 @@ struct ReserveDeploymentBalanceUpDischarge <: StorageReserveDischargeExpression 
 struct ReserveDeploymentBalanceUpCharge <: StorageReserveChargeExpression end
 struct ReserveDeploymentBalanceDownDischarge <: StorageReserveDischargeExpression end
 struct ReserveDeploymentBalanceDownCharge <: StorageReserveChargeExpression end
+
+should_write_resulting_value(::Type{StorageReserveDischargeExpression}) = true
+should_write_resulting_value(::Type{StorageReserveChargeExpression}) = true
