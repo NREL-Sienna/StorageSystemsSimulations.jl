@@ -82,17 +82,17 @@ PSI.get_variable_binary(::StorageRegularizationVariable, ::Type{<:PSY.Storage}, 
 PSI.get_variable_upper_bound(::StorageRegularizationVariable, d::PSY.Storage, ::AbstractStorageFormulation) = max(PSY.get_input_active_power_limits(d).max, PSY.get_output_active_power_limits(d).max)
 PSI.get_variable_lower_bound(::StorageRegularizationVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
 
-#! format: on)
+#! format: on
+
 function PSI.variable_cost(
     cost::PSY.StorageManagementCost,
     ::StorageRegularizationVariable,
     ::PSY.Storage,
-    ::AbstractStorageFormulation
+    ::AbstractStorageFormulation,
 )
     max_val = max(REG_COST, cost.variable.cost[2] * REG_COST)
     return PSY.VariableCost(max_val)
 end
-
 
 function PSI.get_default_time_series_names(
     ::Type{D},
@@ -1471,7 +1471,7 @@ function PSI.add_constraints!(
         V,
         names,
         time_steps,
-        meta = "ub"
+        meta="ub",
     )
 
     constraint_lb = PSI.add_constraints_container!(
@@ -1480,34 +1480,42 @@ function PSI.add_constraints!(
         V,
         names,
         time_steps,
-        meta = "lb"
+        meta="lb",
     )
 
     for d in devices
         name = PSY.get_name(d)
-        constraint_ub[name, 1] = JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
-        constraint_lb[name, 1] = JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
-        
+        constraint_ub[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        constraint_lb[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+
         for t in time_steps[2:end]
             if has_services
                 constraint_ub[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    (powerin_var[name, t-1] + r_dn_ch[name, t-1] - r_up_ch[name, t-1]) -
-                    (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) <= reg_var[name, t]
-                    )
-                constraint_lb[name, t] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    (powerin_var[name, t-1] + r_dn_ch[name, t-1] - r_up_ch[name, t-1]) -
-                    (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) >= -reg_var[name, t]
-                    )
-            else
-                constraint_ub[name, t] = JuMP.@constraint(
-                    PSI.get_jump_model(container),
-                    powerin_var[name, t-1] - powerin_var[name, t]  <= reg_var[name, t]
+                    (
+                        powerin_var[name, t - 1] + r_dn_ch[name, t - 1] -
+                        r_up_ch[name, t - 1]
+                    ) - (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) <=
+                    reg_var[name, t]
                 )
                 constraint_lb[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    powerin_var[name, t-1]  - powerin_var[name, t] >= -reg_var[name, t]
+                    (
+                        powerin_var[name, t - 1] + r_dn_ch[name, t - 1] -
+                        r_up_ch[name, t - 1]
+                    ) - (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) >=
+                    -reg_var[name, t]
+                )
+            else
+                constraint_ub[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerin_var[name, t - 1] - powerin_var[name, t] <= reg_var[name, t]
+                )
+                constraint_lb[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerin_var[name, t - 1] - powerin_var[name, t] >= -reg_var[name, t]
                 )
             end
         end
@@ -1539,7 +1547,7 @@ function PSI.add_constraints!(
         V,
         names,
         time_steps,
-        meta = "ub"
+        meta="ub",
     )
 
     constraint_lb = PSI.add_constraints_container!(
@@ -1548,33 +1556,41 @@ function PSI.add_constraints!(
         V,
         names,
         time_steps,
-        meta = "lb"
+        meta="lb",
     )
 
     for d in devices
         name = PSY.get_name(d)
-        constraint_ub[name, 1] = JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
-        constraint_lb[name, 1] = JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        constraint_ub[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        constraint_lb[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
         for t in time_steps[2:end]
             if has_services
                 constraint_ub[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    (powerout_var[name, t-1] + r_up_ds[name, t-1] - r_dn_ds[name, t-1]) -
-                    (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) <= reg_var[name, t]
+                    (
+                        powerout_var[name, t - 1] + r_up_ds[name, t - 1] -
+                        r_dn_ds[name, t - 1]
+                    ) - (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) <=
+                    reg_var[name, t]
                 )
                 constraint_lb[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    (powerout_var[name, t-1] + r_up_ds[name, t-1] - r_dn_ds[name, t-1]) -
-                    (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) >= -reg_var[name, t]
+                    (
+                        powerout_var[name, t - 1] + r_up_ds[name, t - 1] -
+                        r_dn_ds[name, t - 1]
+                    ) - (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) >=
+                    -reg_var[name, t]
                 )
             else
                 constraint_ub[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    powerout_var[name, t-1] - powerout_var[name, t] <= reg_var[name, t]
+                    powerout_var[name, t - 1] - powerout_var[name, t] <= reg_var[name, t]
                 )
                 constraint_lb[name, t] = JuMP.@constraint(
                     PSI.get_jump_model(container),
-                    powerout_var[name, t-1] - powerout_var[name, t] >= -reg_var[name, t]
+                    powerout_var[name, t - 1] - powerout_var[name, t] >= -reg_var[name, t]
                 )
             end
         end
@@ -1591,8 +1607,18 @@ function PSI.objective_function!(
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, U())
     PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, U())
     if PSI.get_attribute(model, "regularization")
-        PSI.add_variable_cost!(container, StorageRegularizationVariableCharge(), devices, U())
-        PSI.add_variable_cost!(container, StorageRegularizationVariableDischarge(), devices, U())
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableCharge(),
+            devices,
+            U(),
+        )
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableDischarge(),
+            devices,
+            U(),
+        )
     end
 
     return
@@ -1625,8 +1651,18 @@ function PSI.objective_function!(
         )
     end
     if PSI.get_attribute(model, "regularization")
-        PSI.add_variable_cost!(container, StorageRegularizationVariableCharge(), devices, T())
-        PSI.add_variable_cost!(container, StorageRegularizationVariableDischarge(), devices, T())
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableCharge(),
+            devices,
+            T(),
+        )
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableDischarge(),
+            devices,
+            T(),
+        )
     end
     return
 end
