@@ -126,7 +126,7 @@ end
         ),
     )
 
-    ff_et = SSS.EnergyTargetFeedforward(;
+    ff_et = EnergyTargetFeedforward(;
         component_type=GenericBattery,
         source=EnergyVariable,
         affected_values=[EnergyVariable],
