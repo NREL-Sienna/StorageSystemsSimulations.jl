@@ -72,15 +72,27 @@ PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageDischargeCyclingSlac
 PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
 PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
 
-
-
 ######################## Parameters ##################################################
 
 PSI.get_parameter_multiplier(::EnergyTargetParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 PSI.get_parameter_multiplier(::EnergyLimitParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 
+############## ReservationVariable, Storage ####################
+PSI.get_variable_binary(::StorageRegularizationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
+PSI.get_variable_upper_bound(::StorageRegularizationVariable, d::PSY.Storage, ::AbstractStorageFormulation) = max(PSY.get_input_active_power_limits(d).max, PSY.get_output_active_power_limits(d).max)
+PSI.get_variable_lower_bound(::StorageRegularizationVariable, d::PSY.Storage, ::AbstractStorageFormulation) = 0.0
 
 #! format: on
+
+function PSI.variable_cost(
+    cost::PSY.StorageManagementCost,
+    ::StorageRegularizationVariable,
+    ::PSY.Storage,
+    ::AbstractStorageFormulation,
+)
+    max_val = max(REG_COST, cost.variable.cost[2] * REG_COST)
+    return PSY.VariableCost(max_val)
+end
 
 function PSI.get_default_time_series_names(
     ::Type{D},
@@ -98,6 +110,7 @@ function PSI.get_default_attributes(
         "cycling_limits" => false,
         "energy_target" => false,
         "complete_coverage" => false,
+        "regularization" => false,
     )
 end
 
@@ -110,6 +123,7 @@ function PSI.get_default_attributes(
         "cycling_limits" => false,
         "energy_target" => false,
         "complete_coverage" => false,
+        "regularization" => false,
     )
 end
 
@@ -1436,14 +1450,180 @@ function PSI.add_constraints!(
     return
 end
 
+function PSI.add_constraints!(
+    container::PSI.OptimizationContainer,
+    ::Type{StorageRegularizationConstraintCharge},
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
+    network_model::PSI.NetworkModel{X},
+) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
+    names = [PSY.get_name(x) for x in devices]
+    time_steps = PSI.get_time_steps(container)
+    reg_var = PSI.get_variable(container, StorageRegularizationVariableCharge(), V)
+    powerin_var = PSI.get_variable(container, PSI.ActivePowerInVariable(), V)
+    has_services = PSI.has_service_model(model)
+
+    if has_services
+        r_up_ch = PSI.get_expression(container, ReserveDeploymentBalanceUpCharge(), V)
+        r_dn_ch = PSI.get_expression(container, ReserveDeploymentBalanceDownCharge(), V)
+    end
+
+    constraint_ub = PSI.add_constraints_container!(
+        container,
+        StorageRegularizationConstraintCharge(),
+        V,
+        names,
+        time_steps,
+        meta="ub",
+    )
+
+    constraint_lb = PSI.add_constraints_container!(
+        container,
+        StorageRegularizationConstraintCharge(),
+        V,
+        names,
+        time_steps,
+        meta="lb",
+    )
+
+    for d in devices
+        name = PSY.get_name(d)
+        constraint_ub[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        constraint_lb[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+
+        for t in time_steps[2:end]
+            if has_services
+                constraint_ub[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    (
+                        powerin_var[name, t - 1] + r_dn_ch[name, t - 1] -
+                        r_up_ch[name, t - 1]
+                    ) - (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) <=
+                    reg_var[name, t]
+                )
+                constraint_lb[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    (
+                        powerin_var[name, t - 1] + r_dn_ch[name, t - 1] -
+                        r_up_ch[name, t - 1]
+                    ) - (powerin_var[name, t] + r_dn_ch[name, t] - r_up_ch[name, t]) >=
+                    -reg_var[name, t]
+                )
+            else
+                constraint_ub[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerin_var[name, t - 1] - powerin_var[name, t] <= reg_var[name, t]
+                )
+                constraint_lb[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerin_var[name, t - 1] - powerin_var[name, t] >= -reg_var[name, t]
+                )
+            end
+        end
+    end
+
+    return
+end
+
+function PSI.add_constraints!(
+    container::PSI.OptimizationContainer,
+    ::Type{StorageRegularizationConstraintDischarge},
+    devices::IS.FlattenIteratorWrapper{V},
+    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
+    network_model::PSI.NetworkModel{X},
+) where {V <: PSY.Storage, X <: PM.AbstractPowerModel}
+    names = [PSY.get_name(x) for x in devices]
+    time_steps = PSI.get_time_steps(container)
+    reg_var = PSI.get_variable(container, StorageRegularizationVariableDischarge(), V)
+    powerout_var = PSI.get_variable(container, PSI.ActivePowerOutVariable(), V)
+    has_services = PSI.has_service_model(model)
+    if has_services
+        r_up_ds = PSI.get_expression(container, ReserveDeploymentBalanceUpDischarge(), V)
+        r_dn_ds = PSI.get_expression(container, ReserveDeploymentBalanceDownDischarge(), V)
+    end
+
+    constraint_ub = PSI.add_constraints_container!(
+        container,
+        StorageRegularizationConstraintDischarge(),
+        V,
+        names,
+        time_steps,
+        meta="ub",
+    )
+
+    constraint_lb = PSI.add_constraints_container!(
+        container,
+        StorageRegularizationConstraintDischarge(),
+        V,
+        names,
+        time_steps,
+        meta="lb",
+    )
+
+    for d in devices
+        name = PSY.get_name(d)
+        constraint_ub[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        constraint_lb[name, 1] =
+            JuMP.@constraint(PSI.get_jump_model(container), reg_var[name, 1] == 0)
+        for t in time_steps[2:end]
+            if has_services
+                constraint_ub[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    (
+                        powerout_var[name, t - 1] + r_up_ds[name, t - 1] -
+                        r_dn_ds[name, t - 1]
+                    ) - (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) <=
+                    reg_var[name, t]
+                )
+                constraint_lb[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    (
+                        powerout_var[name, t - 1] + r_up_ds[name, t - 1] -
+                        r_dn_ds[name, t - 1]
+                    ) - (powerout_var[name, t] + r_up_ds[name, t] - r_dn_ds[name, t]) >=
+                    -reg_var[name, t]
+                )
+            else
+                constraint_ub[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerout_var[name, t - 1] - powerout_var[name, t] <= reg_var[name, t]
+                )
+                constraint_lb[name, t] = JuMP.@constraint(
+                    PSI.get_jump_model(container),
+                    powerout_var[name, t - 1] - powerout_var[name, t] >= -reg_var[name, t]
+                )
+            end
+        end
+    end
+    return
+end
+
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
-    ::PSI.DeviceModel{T, U},
+    model::PSI.DeviceModel{T, U},
     ::Type{V},
 ) where {T <: PSY.Storage, U <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, U())
     PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, U())
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableCharge(),
+            devices,
+            U(),
+        )
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableDischarge(),
+            devices,
+            U(),
+        )
+    end
+
     return
 end
 
@@ -1469,6 +1649,20 @@ function PSI.objective_function!(
         PSI.add_proportional_cost!(
             container,
             StorageDischargeCyclingSlackVariable(),
+            devices,
+            T(),
+        )
+    end
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableCharge(),
+            devices,
+            T(),
+        )
+        PSI.add_variable_cost!(
+            container,
+            StorageRegularizationVariableDischarge(),
             devices,
             T(),
         )

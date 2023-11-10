@@ -6,6 +6,8 @@
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
@@ -23,6 +25,8 @@ end
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
@@ -58,6 +62,8 @@ end
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
@@ -73,6 +79,8 @@ end
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
@@ -89,6 +97,8 @@ end
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
@@ -104,6 +114,8 @@ end
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => true,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems")
@@ -123,6 +135,8 @@ end
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
 
@@ -149,6 +163,8 @@ end
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
 

@@ -221,6 +221,12 @@ function PSI.construct_device!(
     devices = PSI.get_available_components(St, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
     PSI.add_variables!(container, PSI.ReactivePowerVariable, devices, D())
+
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_variables!(container, StorageRegularizationVariableCharge, devices, D())
+        PSI.add_variables!(container, StorageRegularizationVariableDischarge, devices, D())
+    end
+
     PSI.add_to_expression!(
         container,
         PSI.ReactivePowerBalance,
@@ -291,6 +297,10 @@ function PSI.construct_device!(
         )
     end
 
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_constraints!(container, StorageRegularizationConstraints, devices, D())
+    end
+
     PSI.add_constraint_dual!(container, sys, model)
     PSI.objective_function!(container, devices, model, S)
     return
@@ -309,6 +319,11 @@ function PSI.construct_device!(
 }
     devices = PSI.get_available_components(St, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
+
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_variables!(container, StorageRegularizationVariableCharge, devices, D())
+        PSI.add_variables!(container, StorageRegularizationVariableDischarge, devices, D())
+    end
 
     if PSI.has_service_model(model)
         _add_ancillary_services!(container, devices, stage, model, network_model)
@@ -383,6 +398,23 @@ function PSI.construct_device!(
                 network_model,
             )
         end
+    end
+
+    if PSI.get_attribute(model, "regularization")
+        PSI.add_constraints!(
+            container,
+            StorageRegularizationConstraintCharge,
+            devices,
+            model,
+            network_model,
+        )
+        PSI.add_constraints!(
+            container,
+            StorageRegularizationConstraintDischarge,
+            devices,
+            model,
+            network_model,
+        )
     end
 
     PSI.add_feedforward_constraints!(container, model, devices)

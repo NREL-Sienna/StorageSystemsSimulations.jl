@@ -19,6 +19,7 @@
             "cycling_limits" => false,
             "energy_target" => true,
             "complete_coverage" => false,
+            "regularization" => false,
         ),
     )
     set_device_model!(template, device_model)
@@ -93,6 +94,7 @@ end
             "cycling_limits" => false,
             "energy_target" => true,
             "complete_coverage" => true,
+            "regularization" => false,
         ),
     )
     set_device_model!(template, device_model)
