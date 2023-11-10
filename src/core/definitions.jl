@@ -1,2 +1,2 @@
 const CYCLE_VIOLATION_COST = 5e3
-const REG_COST = 0.1
+const REG_COST = 0.001
