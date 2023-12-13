@@ -123,6 +123,7 @@ function _active_power_variables_and_expressions(
     PSI.add_variables!(container, PSI.ActivePowerInVariable, devices, U())
     PSI.add_variables!(container, PSI.ActivePowerOutVariable, devices, U())
     PSI.add_variables!(container, PSI.EnergyVariable, devices, U())
+    PSI.add_variables!(container, StorageEnergyOutput, devices, U())
 
     if PSI.get_attribute(model, "reservation")
         PSI.add_variables!(container, PSI.ReservationVariable, devices, U())

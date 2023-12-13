@@ -30,3 +30,8 @@ struct StorageDischargeCyclingSlackVariable <: PSI.VariableType end
 abstract type StorageRegularizationVariable <: PSI.VariableType end
 struct StorageRegularizationVariableCharge <: StorageRegularizationVariable end
 struct StorageRegularizationVariableDischarge <: StorageRegularizationVariable end
+
+"""
+Auxiliary Variable for Storage Models that solve for total energy output
+"""
+struct StorageEnergyOutput <: PSI.AuxVariableType end

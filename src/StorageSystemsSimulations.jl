@@ -13,6 +13,9 @@ export StorageDischargeCyclingSlackVariable
 export ReserveDischargeConstraint
 export ReserveChargeConstraint
 
+# aux variables
+export StorageEnergyOutput
+
 # constraints
 export StateofChargeLimitsConstraint
 export StorageCyclingCharge
