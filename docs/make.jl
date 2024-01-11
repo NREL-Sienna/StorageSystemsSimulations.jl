@@ -16,7 +16,7 @@ makedocs(;
     modules=[StorageSystemsSimulations],
     format=Documenter.HTML(; prettyurls=haskey(ENV, "GITHUB_ACTIONS")),
     sitename="StorageSystemsSimulations.jl",
-    authors="Sourabh Dalvi, Jose Daniel Lara",
+    authors="Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi",
     pages=Any[p for p in pages],
 )
 
