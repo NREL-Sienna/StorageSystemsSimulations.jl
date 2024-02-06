@@ -2,7 +2,9 @@
 abstract type AbstractStorageFormulation <: PSI.AbstractDeviceFormulation end
 
 """
-Formulation type to add storage formulation than can provide ancillary services.
+Formulation type to add storage formulation than can provide ancillary services. If a
+storage unit does not contribute to any service, then the variables and constraints related to
+services are ignored.
 
 The formulation supports the following attributes. See Documentation for more details.
 

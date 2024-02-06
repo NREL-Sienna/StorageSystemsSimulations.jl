@@ -4,7 +4,25 @@
 StorageDispatchWithReserves
 ```
 
-## Sets
+## Attributes Explanation
+
+- "reservation": Forces the battery to operate exclusively on charge or discharge mode through the entire operation interval. We recommend setting this to false for models with relatively large resolutions (e.g., 1-Hr) since the storage can take simultaneous charge or discharge positions on average over the period.
+- "cycling_limits": This limits the battery's energy cycling. The calculation uses the total energy charge/discharge and the number of cycles. Currently, the formulation only supports a fixed value per operation period.
+- "energy_target": Set a target at the end of the model horizon for the state of charge. Currently, the formulation only supports a fixed value per operation period.
+
+!!! warning
+    Combining the cycle limits and energy target attributes is not recommended. Since both
+    attributes impose constraints on the energy; there is no guarantee that the constraints can be satisfied simultaneously.
+
+- "complete_coverage": This attribute implements constraints that require the battery to cover the sum of all the ancillary services it participates in simultaneously. It is equivalent to holding energy in case all the services get deployed simultaneously. This constraint is added to the constraints that cover each service independently and corresponds to a more conservative operation regime.
+- "regularization": This attribute smooths the charge/discharge profiles to avoid bang-bang solutions via a penalty on the absolute value of the intra-temporal variations of the charge and discharge power. The model can stall in models with large amounts of curtailment or long periods with negative or zero prices due to numerical degeneracy.
+
+!!! danger
+    Setting the energy target attribute in combination with [`EnergyTargetFeedforward`](@ref) or [`EnergyLimitFeedforward`](@ref) is not permitted and StorageSystemsSimulations will throw an exception.
+
+## Mathematical Model
+
+### Sets
 
 ```math
 \begin{align*}
@@ -15,7 +33,7 @@ StorageDispatchWithReserves
 \end{align*}
 ```
 
-## Parameters
+### Parameters
 
 ```math
 \begin{align*}
@@ -40,7 +58,7 @@ StorageDispatchWithReserves
 \end{align*}
 ```
 
-## Variables
+### Variables
 
 ```math
 \begin{align*}
@@ -59,12 +77,12 @@ StorageDispatchWithReserves
 \end{align*}
 ```
 
-## Model
+### Model
 
 ```math
 \begin{aligned}
 \min_{\substack{\boldsymbol{p}^{st, ch}, \boldsymbol{p}^{st, ds}, \boldsymbol{e}^{st}, \\ e^{st+}, e^{st-}, c^{ch-} + c^{ds-}}}
-& \rho^{e+} e^{st+} + \rho^{e-} e^{st-} + \rho^{c} \left(c^{ch-} + c^{ds-} \right) + \rho^{z} \left(z^{ch} + z^{ds} \right)\\
+& \rho^{e+} e^{st+} + \rho^{e-} e^{st-} + \rho^{c} \left(c^{ch-} + c^{ds-} \right) + \rho^{z} \left(\frac{z^{ch}}{P^{max,ch}_{st}} + \frac{z^{ds}}{P^{max,ds}_{st}} \right)\\
 & +\Delta t \sum_{t \in \mathcal{T}} \text{VOM}_{st} \left ( \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{stc,p,t} + p^{st,ch}_{t} \right) + \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t}\right) \right) &
 \end{aligned}
 ```
@@ -80,7 +98,7 @@ StorageDispatchWithReserves
 &\text{Energy Storage Limit Constraints}&\\
 &e^{st}_{t} \leq E^{max}_{st} & \forall t \in \mathcal{T}\\
 & e^{st}_{t} \geq E^{min}_{st} & \forall t \in \mathcal{T}\\
-&\text{Energy Book-keeping constraints}&\\
+&\text{Energy Bookkeeping constraints}&\\
 & E^{st}_{0} + \Delta t  \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,1} sb_{stc,p,1} + p^{st,ch}_{1}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,1} sb_{stc,p,1}\right)\eta^{ch}_{st}&\\
 &-\Delta t\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,1} sb_{std,p,1} + p^{st,ds}_{1} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,1}\right)\frac{1}{\eta^{ds}_{st}}=e^{st}_{1}\\
 &e^{st}_{t-1} + \Delta t  \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{stc,p,t} + p^{st,ch}_{t}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{stc,p,t}\right)\eta^{ch}_{st}&\\
