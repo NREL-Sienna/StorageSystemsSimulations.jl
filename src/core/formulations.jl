@@ -15,7 +15,7 @@ DeviceModel(
         "cycling_limits" => false,
         "energy_target" => false,
         "complete_coverage" => false,
-        "regularization" => true
+        "regularization" => true,
     ),
 )
 ```

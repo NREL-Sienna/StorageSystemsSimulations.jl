@@ -6,7 +6,8 @@ using DataStructures
 pages = OrderedDict(
     "Welcome Page" => "index.md",
     "Quick Start Guide" => "quick_start_guide.md",
-    "Formulation Library" => Any["Storage" => "formulation_library/Storage.md",],
+    "Formulation Library" =>
+        Any["StorageDispatchWithReserves" => "formulation_library/StorageDispatchWithReserves.md",],
     "Code Base Developer Guide" =>
         Any["Developer Guide" => "code_base_developer_guide/developer.md",],
     "API Reference" => "api/StorageSystemsSimulations.md",
@@ -14,10 +15,8 @@ pages = OrderedDict(
 
 makedocs(;
     modules=[StorageSystemsSimulations],
-    format=Documenter.HTML(;
-        prettyurls=haskey(ENV, "GITHUB_ACTIONS")
-        ),
-    warnonly = [:missing_docs],
+    format=Documenter.HTML(; prettyurls=haskey(ENV, "GITHUB_ACTIONS")),
+    warnonly=[:missing_docs],
     sitename="StorageSystemsSimulations.jl",
     authors="Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi",
     pages=Any[p for p in pages],
