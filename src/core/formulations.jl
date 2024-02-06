@@ -19,6 +19,7 @@ DeviceModel(
         "complete_coverage" => false,
         "regularization" => true,
     ),
+    use_slacks=false,
 )
 ```
 """
