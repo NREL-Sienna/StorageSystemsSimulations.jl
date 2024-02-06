@@ -4,9 +4,8 @@
 CurrentModule = StorageSystemsSimulations
 ```
 
-## Installation
+## Overview
 
-The latest stable release of StorageSystemsSimulations can be installed using the Julia package manager with
 
 * * *
 
