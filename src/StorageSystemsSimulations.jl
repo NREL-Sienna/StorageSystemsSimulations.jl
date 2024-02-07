@@ -11,8 +11,8 @@ export StorageEnergyShortageVariable
 export StorageEnergySurplusVariable
 export StorageChargeCyclingSlackVariable
 export StorageDischargeCyclingSlackVariable
-export ReserveDischargeConstraint
-export ReserveChargeConstraint
+export StorageRegularizationVariableCharge
+export StorageRegularizationVariableDischarge
 
 # aux variables
 export StorageEnergyOutput
@@ -26,6 +26,8 @@ export ReserveCoverageConstraintEndOfPeriod
 export ReserveCompleteCoverageConstraint
 export ReserveCompleteCoverageConstraintEndOfPeriod
 export StorageTotalReserveConstraint
+export ReserveDischargeConstraint
+export ReserveChargeConstraint
 
 # FF
 export EnergyTargetFeedforward

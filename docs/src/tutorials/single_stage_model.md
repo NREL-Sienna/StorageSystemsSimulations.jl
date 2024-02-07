@@ -9,7 +9,7 @@
 ```@example op_problem
 using PowerSystems
 using PowerSimulations
-using StorageSystemSimulations
+using StorageSystemsSimulations
 using PowerSystemCaseBuilder
 using HiGHS # solver
 ```
@@ -26,7 +26,7 @@ c_sys5_bat = build_system(
     PSITestSystems,
     "c_sys5_bat_ems";
     add_single_time_series=true,
-    add_services=true,
+    add_reserves=true,
 )
 orcd = get_component(ReserveDemandCurve, c_sys5_bat, "ORDC1")
 set_available!(orcd, false)
@@ -36,7 +36,6 @@ set_available!(orcd, false)
 batt = get_component(BatteryEMS, c_sys5_bat, "Bat2")
 
 operation_cost = get_operation_cost(batt)
-set_variable_cost!(operation_cost, VariableCost(5.0))
 ```
 
 ```@example op_problem

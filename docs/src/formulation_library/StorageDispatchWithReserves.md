@@ -12,7 +12,7 @@ StorageDispatchWithReserves
 
 !!! warning
     
-    Combining the cycle limits and energy target attributes is not recommended. Since both
+    Combining the cycle limits and energy target attributes is not recommended. Both
     attributes impose constraints on the energy; there is no guarantee that the constraints can be satisfied simultaneously.
 
   - `"complete_coverage"`: This attribute implements constraints that require the battery to cover the sum of all the ancillary services it participates in simultaneously. It is equivalent to holding energy in case all the services get deployed simultaneously. This constraint is added to the constraints that cover each service independently and corresponds to a more conservative operation regime.
