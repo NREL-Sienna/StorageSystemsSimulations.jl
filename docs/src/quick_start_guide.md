@@ -7,7 +7,6 @@
 
 !!! tip
     
-    
     If you need to develop a dataset for a simulation check the [PowerSystems.jl Tutorials](https://nrel-sienna.github.io/PowerSystems.jl/stable/tutorials/basics/) on how to parse data and attach time series
 
   - **Tutorial:** If you are eager to run your first simulation visit the tutorial section of the documentation

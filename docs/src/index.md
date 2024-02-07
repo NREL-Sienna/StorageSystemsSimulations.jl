@@ -35,17 +35,18 @@ Each formulation can have different implementations for these attributes and the
 
 The latest stable release of PowerSimulations can be installed using the Julia package manager with
 
-```
+```@repl
 ] add PowerSimulations StorageSystemsSimulations
 ```
 
 For the current development version, "checkout" this package with
 
-```
+```@repl
 ] add PowerSimulations StorageSystemsSimulations#main
 ```
 
 An appropriate optimization solver is required for running StorageSystemsSimulations models. Refer to [`JuMP.jl` solver's page](https://jump.dev/JuMP.jl/stable/installation/#Install-a-solver) to select the most appropriate for the application of interest.
+
 * * *
 
 StorageSystemsSimulations has been developed as part of the Scalable Integrated Infrastructure Planning (SIIP) initiative at the U.S. Department of Energy's National Renewable Energy
