@@ -29,6 +29,10 @@ DeviceModel(
 )
 ```
 
+!!! tip
+Carefully review the formulation library pages to understand how to configure the storage model according to your requirements
+
+
 Each formulation can have different implementations for these attributes and the details can be found in the Formulation Library section in the documentation.
 
 ## Installation
