@@ -35,13 +35,13 @@ Each formulation can have different implementations for these attributes and the
 
 The latest stable release of PowerSimulations can be installed using the Julia package manager with
 
-```julia
+```
 ] add PowerSimulations StorageSystemsSimulations
 ```
 
 For the current development version, "checkout" this package with
 
-```julia
+```
 ] add PowerSimulations StorageSystemsSimulations#main
 ```
 
