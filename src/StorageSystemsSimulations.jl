@@ -33,6 +33,9 @@ export ReserveChargeConstraint
 export EnergyTargetFeedforward
 export EnergyLimitFeedforward
 
+# parameters
+export EnergyLimitParameter
+
 #################################################################################
 # Modeling Imports
 import JuMP
