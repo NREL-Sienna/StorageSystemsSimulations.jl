@@ -30,7 +30,8 @@ DeviceModel(
 ```
 
 !!! tip
-Each formulation can have different implementations for attributes. Carefully review the formulation library pages to understand how to configure the storage model according to your requirements
+
+    Each formulation can have different implementations for attributes. Carefully review the formulation library pages to understand how to configure the storage model according to your requirements
 
 ## Installation
 
