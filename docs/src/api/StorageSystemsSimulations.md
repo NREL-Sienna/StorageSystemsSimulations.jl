@@ -7,24 +7,12 @@ DocTestSetup  = quote
 end
 ```
 
-API documentation
-
-```@contents
-Pages = ["StorageSystemsSimulations.md"]
-```
-
-## Index
-
-```@index
-Pages = ["StorageSystemsSimulations.md"]
-```
-
 ## Exported
 
 ```@autodocs
 Modules = [StorageSystemsSimulations]
 Private = false
-Filter = t -> typeof(t) === DataType ? !(t <: Union{StorageSystemsSimulations.AbstractStorageFormulation}) : true
+Filter = t -> typeof(t) === DataType ? !(t <: StorageSystemsSimulations.AbstractStorageFormulation) : true
 ```
 
 ## Internal

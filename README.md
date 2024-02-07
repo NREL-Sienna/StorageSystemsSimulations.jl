@@ -2,6 +2,7 @@
 
 [![Main - CI](https://github.com/NREL-Sienna/StorageSystemsSimulations.jl/actions/workflows/main-tests.yml/badge.svg)](https://github.com/NREL-Sienna/StorageSystemsSimulations.jl/actions/workflows/main-tests.yml)
 [![codecov](https://codecov.io/gh/NREL-Sienna/StorageSystemsSimulations.jl/branch/main/graph/badge.svg?token=sML4kPw4Z9)](https://codecov.io/gh/NREL-Sienna/StorageSystemsSimulations.jl)
+[![Documentation](https://github.com/NREL-Sienna/StorageSystemsSimulations.jl/workflows/Documentation/badge.svg)](https://nrel-sienna.github.io/StorageSystemsSimulations.jl/latest)
 [<img src="https://img.shields.io/badge/slack-@Sienna/PSY-sienna.svg?logo=slack">](https://join.slack.com/t/nrel-sienna/shared_invite/zt-glam9vdu-o8A9TwZTZqqNTKHa7q3BpQ)
 
 ## Development
