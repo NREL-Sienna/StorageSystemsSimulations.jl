@@ -7,7 +7,7 @@ DocTestSetup  = quote
 end
 ```
 
-## StorageSystemsSimulationsVariables
+## StorageSystemsSimulations Variables (@id vars)
 
 ```@docs
 AncillaryServiceVariableDischarge
@@ -20,32 +20,34 @@ StorageRegularizationVariableCharge
 StorageRegularizationVariableDischarge
 ```
 
-## StorageSystemsSimulations Auxiliary Variables
+## StorageSystemsSimulations Auxiliary Variables (@id aux_vars)
 
 ```@docs
 StorageEnergyOutput
 ```
 
-## StorageSystemsSimulations Constraints
+## StorageSystemsSimulations Constraints (@id cons)
 
 ```@docs
-AncillaryServiceVariableDischarge
-AncillaryServiceVariableCharge
-StorageEnergyShortageVariable
-StorageEnergySurplusVariable
-StorageChargeCyclingSlackVariable
-StorageDischargeCyclingSlackVariable
-StorageRegularizationVariableCharge
-StorageRegularizationVariableDischarge
+StateofChargeLimitsConstraint
+StorageCyclingCharge
+StorageCyclingDischarge
+ReserveCoverageConstraint
+ReserveCoverageConstraintEndOfPeriod
+ReserveCompleteCoverageConstraint
+ReserveCompleteCoverageConstraintEndOfPeriod
+StorageTotalReserveConstraint
+ReserveDischargeConstraint
+ReserveChargeConstraint
 ```
 
-## StorageSystemsSimulations Parameters
+## StorageSystemsSimulations Parameters (@id params)
 
 ```@docs
 EnergyLimitParameter
 ```
 
-## StorageSystemsSimulations FeedForwards
+## StorageSystemsSimulations FeedForwards (@id ffs)
 
 ```@docs
 EnergyTargetFeedforward
