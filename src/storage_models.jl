@@ -1754,14 +1754,13 @@ function PSI.calculate_aux_variable_value!(
     ::PSI.AuxVarKey{StorageEnergyOutput, T},
     system::PSY.System,
 ) where {T <: PSY.Storage}
-    devices = PSI.get_available_components(T, system)
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
     p_variable_results = PSI.get_variable(container, PSI.ActivePowerOutVariable(), T)
     aux_variable_container = PSI.get_aux_variable(container, StorageEnergyOutput(), T)
-    for d in devices, t in time_steps
-        name = PSY.get_name(d)
+    device_names = axes(aux_variable_container, 1)
+    for name in device_names, t in time_steps
         aux_variable_container[name, t] =
             PSI.jump_value(p_variable_results[name, t]) * fraction_of_hour
     end
