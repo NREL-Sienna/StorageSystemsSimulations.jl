@@ -9,6 +9,8 @@ CurrentModule = StorageSystemsSimulations
 `StorageSimulations.jl` is a `PowerSimulations.jl` extension to support formulations and models
 related to energy storage including batteries and other long-durantion storage devices.
 
+The codebase for `StorageSimulations.jl` contains storage specific [`VariableType`](@ref vars), [`AuxVariableType`](@ref aux_vars), [`ConstraintType`](@ref cons), [`ParameterType`](@ref params) and [`FeedForward`](@ref ff) used for modeling the operations of energy storage systems.
+
 A Storage Operational Model can have multiple combinations of different restrictions depending on the modeling objectives. For instance,
 it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSimulations.jl` heavily uses the `DeviceModel` attributes feature to configure the storage model.
 
@@ -30,7 +32,7 @@ storage_model = DeviceModel(
 ```
 
 !!! tip
-
+    
     Each formulation can have different implementations for attributes. Carefully review the formulation library pages to understand how to configure the storage model according to your requirements
 
 ## Installation

@@ -8,6 +8,8 @@ pages = OrderedDict(
     "Quick Start Guide" => "quick_start_guide.md",
     "Tutorials" =>
         Any["tutorials/single_stage_model.md", "tutorials/simulation_tutorial.md"],
+    #"How-to and common uses" => ["how_to/configure_feedforward.md"],
+    #"Introductory Background" => ["background/discretization.md", "background/ancillary_services.md"],
     "Formulation Library" =>
         Any["StorageDispatchWithReserves" => "formulation_library/StorageDispatchWithReserves.md",],
     "Code Base Developer Guide" => "code_base_developer_guide/developer.md",
