@@ -184,3 +184,22 @@ end
 
     @test isapprox(param_ed[!, 2], p_out_bat[!, 2] / 100.0; atol=1e-4)
 end
+
+@testset "Test cost handling" begin
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
+    template = get_thermal_dispatch_template_network()
+    storage_model = DeviceModel(
+        GenericBattery,
+        StorageDispatchWithReserves;
+        attributes=Dict(
+            "reservation" => false,
+            "cycling_limits" => false,
+            "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => true,
+        ),
+    )
+    set_device_model!(template, storage_model)
+    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
+    @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
+end
