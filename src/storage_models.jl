@@ -90,8 +90,8 @@ function PSI.variable_cost(
     ::PSY.Storage,
     ::AbstractStorageFormulation,
 )
-    max_val = max(REG_COST, cost.variable.cost[2] * REG_COST)
-    return PSY.VariableCost(max_val)
+    max_val = max(REG_COST, PSY.get_proportional_term(PSY.get_variable(cost)) * REG_COST)
+    return PSY.LinearFunctionData(max_val)
 end
 
 function PSI.get_default_time_series_names(
