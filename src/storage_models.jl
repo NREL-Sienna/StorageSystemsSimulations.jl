@@ -63,14 +63,14 @@ PSI.objective_function_multiplier(::PSI.VariableType, ::AbstractStorageFormulati
 PSI.objective_function_multiplier(::StorageEnergySurplusVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 PSI.objective_function_multiplier(::StorageEnergyShortageVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergySurplusVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergyShortageVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
-PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageChargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
-PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageDischargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergySurplusVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
+PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergyShortageVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
+PSI.proportional_cost(::PSY.StorageCost, ::StorageChargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+PSI.proportional_cost(::PSY.StorageCost, ::StorageDischargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
 
 
-PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
-PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
+PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_discharge_variable_cost(cost)
+PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_charge_variable_cost(cost)
 
 ######################## Parameters ##################################################
 
@@ -85,7 +85,7 @@ PSI.get_variable_lower_bound(::StorageRegularizationVariable, d::PSY.Storage, ::
 #! format: on
 
 function PSI.variable_cost(
-    cost::PSY.StorageManagementCost,
+    cost::PSY.StorageCost,
     ::StorageRegularizationVariable,
     ::PSY.Storage,
     ::AbstractStorageFormulation,
