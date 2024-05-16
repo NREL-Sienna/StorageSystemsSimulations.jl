@@ -16,7 +16,7 @@ For example, the formulation `StorageDispatchWithReserves` can be parametrized a
 
 ```julia
 DeviceModel(
-    StorageType, # E.g. BatteryEMS or GenericStorage
+    StorageType, # E.g. EnergyReservoirStorage or GenericStorage
     StorageDispatchWithReserves;
     attributes=Dict(
         "reservation" => true,

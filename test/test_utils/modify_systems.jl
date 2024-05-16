@@ -16,7 +16,7 @@ function _build_battery(
     efficiency_out,
 )
     name = string(bus.number) * "_BATTERY"
-    device = BatteryEMS(;
+    device = EnergyReservoirStorage(;
         name=name,
         available=true,
         bus=bus,

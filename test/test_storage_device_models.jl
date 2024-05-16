@@ -1,6 +1,6 @@
 @testset "Storage Basic Storage With DC - PF" begin
     device_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => false,
@@ -19,7 +19,7 @@ end
 
 @testset "Storage Basic Storage With AC - PF" begin
     device_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => false,
@@ -37,7 +37,7 @@ end
 end
 
 @testset "Storage with Reservation  & DC - PF" begin
-    device_model = DeviceModel(GenericBattery, StorageDispatchWithReserves)
+    device_model = DeviceModel(EnergyReservoirStorage, StorageDispatchWithReserves)
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
     model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
@@ -46,7 +46,7 @@ end
 end
 
 @testset "Storage with Reservation  & AC - PF" begin
-    device_model = DeviceModel(GenericBattery, StorageDispatchWithReserves)
+    device_model = DeviceModel(EnergyReservoirStorage, StorageDispatchWithReserves)
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
     model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
     mock_construct_device!(model, device_model)
@@ -54,9 +54,9 @@ end
     psi_checkobjfun_test(model, GAEVF)
 end
 
-@testset "BatteryEMS with EnergyTarget with DC - PF" begin
+@testset "EnergyReservoirStorage with EnergyTarget with DC - PF" begin
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -73,7 +73,7 @@ end
     psi_checkobjfun_test(model, GAEVF)
 
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => false,
@@ -89,9 +89,9 @@ end
     psi_checkobjfun_test(model, GAEVF)
 end
 
-@testset "BatteryEMS with EnergyTarget With AC - PF" begin
+@testset "EnergyReservoirStorage with EnergyTarget With AC - PF" begin
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -108,7 +108,7 @@ end
     psi_checkobjfun_test(model, GAEVF)
 
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => false,
@@ -127,9 +127,9 @@ end
 
 ### Feedforward Test ###
 # TODO: Feedforward debugging
-@testset "Test EnergyTargetFeedforward to GenericBattery with BookKeeping model" begin
+@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with BookKeeping model" begin
     device_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -141,7 +141,7 @@ end
     )
 
     ff_et = EnergyTargetFeedforward(;
-        component_type=GenericBattery,
+        component_type=EnergyReservoirStorage,
         source=EnergyVariable,
         affected_values=[EnergyVariable],
         target_period=12,
@@ -155,9 +155,9 @@ end
     moi_tests(model, 122, 0, 72, 73, 24, true)
 end
 
-@testset "Test EnergyTargetFeedforward to BatteryEMS with BookKeeping model" begin
+@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with BookKeeping model" begin
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -169,7 +169,7 @@ end
     )
 
     ff_et = EnergyTargetFeedforward(;
-        component_type=BatteryEMS,
+        component_type=EnergyReservoirStorage,
         source=EnergyVariable,
         affected_values=[EnergyVariable],
         target_period=12,
@@ -184,11 +184,11 @@ end
 end
 
 #=
-@testset "Test EnergyLimitFeedforward to GenericBattery with BookKeeping model" begin
-    device_model = DeviceModel(GenericBattery, BookKeeping)
+@testset "Test EnergyLimitFeedforward to EnergyReservoirStorage with BookKeeping model" begin
+    device_model = DeviceModel(EnergyReservoirStorage, BookKeeping)
 
     ff_il = EnergyLimitFeedforward(;
-        component_type=GenericBattery,
+        component_type=EnergyReservoirStorage,
         source=ActivePowerOutVariable,
         affected_values=[ActivePowerOutVariable],
         number_of_periods=12,
@@ -201,11 +201,11 @@ end
     moi_tests(model, 121, 0, 74, 72, 24, true)
 end
 
-@testset "Test EnergyLimitFeedforward to GenericBattery with BatteryAncillaryServices model" begin
-    device_model = DeviceModel(GenericBattery, BatteryAncillaryServices)
+@testset "Test EnergyLimitFeedforward to EnergyReservoirStorage with BatteryAncillaryServices model" begin
+    device_model = DeviceModel(EnergyReservoirStorage, BatteryAncillaryServices)
 
     ff_il = EnergyLimitFeedforward(;
-        component_type=GenericBattery,
+        component_type=EnergyReservoirStorage,
         source=ActivePowerOutVariable,
         affected_values=[ActivePowerOutVariable],
         number_of_periods=12,
@@ -221,7 +221,7 @@ end
 # To Fix
 @testset "Test Reserves from Storage" begin
     template = get_thermal_dispatch_template_network(CopperPlatePowerModel)
-    set_device_model!(template, DeviceModel(GenericBattery, BatteryAncillaryServices))
+    set_device_model!(template, DeviceModel(EnergyReservoirStorage, BatteryAncillaryServices))
     set_device_model!(template, RenewableDispatch, FixedOutput)
     set_service_model!(
         template,

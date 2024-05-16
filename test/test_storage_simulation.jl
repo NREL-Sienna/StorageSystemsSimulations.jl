@@ -2,17 +2,17 @@
     ######## Test with BookKeeping ########
     template = get_thermal_dispatch_template_network()
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
-    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
+    set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
     model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
-    check_energy_initial_conditions_values(model, GenericBattery)
+    check_energy_initial_conditions_values(model, EnergyReservoirStorage)
     @test solve!(model) == RunStatus.SUCCESSFUL
 
     ######## Test with EnergyTarget ########
     template = get_thermal_dispatch_template_network()
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems"; force_build=true)
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -25,7 +25,7 @@
     set_device_model!(template, device_model)
     model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == BuildStatus.BUILT
-    check_energy_initial_conditions_values(model, BatteryEMS)
+    check_energy_initial_conditions_values(model, EnergyReservoirStorage)
     @test solve!(model) == RunStatus.SUCCESSFUL
 end
 
@@ -38,14 +38,14 @@ end
         add_single_time_series=true,
         force_build=true,
     )
-    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
+    set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
     model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
           BuildStatus.BUILT
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
         InitialEnergyLevel(),
-        GenericBattery,
+        EnergyReservoirStorage,
     )
     for ic in ic_data
         name = PSY.get_name(ic.component)
@@ -62,14 +62,14 @@ end
         add_single_time_series=true,
         force_build=true,
     )
-    set_device_model!(template, GenericBattery, StorageDispatchWithReserves)
+    set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
     model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
           BuildStatus.BUILT
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
         InitialEnergyLevel(),
-        GenericBattery,
+        EnergyReservoirStorage,
     )
     for ic in ic_data
         name = PSY.get_name(ic.component)
@@ -87,7 +87,7 @@ end
         force_build=true,
     )
     device_model = DeviceModel(
-        BatteryEMS,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -104,7 +104,7 @@ end
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
         InitialEnergyLevel(),
-        BatteryEMS,
+        EnergyReservoirStorage,
     )
     for ic in ic_data
         name = PSY.get_name(ic.component)
@@ -114,7 +114,7 @@ end
     @test run!(model) == RunStatus.SUCCESSFUL
 end
 
-@testset "Simulation with 2-Stages EnergyLimitFeedforward with GenericBattery" begin
+@testset "Simulation with 2-Stages EnergyLimitFeedforward with EnergyReservoirStorage" begin
     sys_uc = build_system(PSITestSystems, "c_sys5_bat")
     sys_ed = build_system(PSITestSystems, "c_sys5_bat")
 
@@ -150,7 +150,7 @@ end
                     affected_values=[ActivePowerVariable],
                 ),
                 EnergyLimitFeedforward(;
-                    component_type=GenericBattery,
+                    component_type=EnergyReservoirStorage,
                     source=ActivePowerOutVariable,
                     affected_values=[ActivePowerOutVariable],
                     number_of_periods=12,
@@ -177,10 +177,10 @@ end
     # Test UC Vars are equal to ED params
     res = SimulationResults(sim_cache)
     res_ed = res.decision_problem_results["ED"]
-    param_ed = read_realized_parameter(res_ed, "EnergyLimitParameter__GenericBattery")
+    param_ed = read_realized_parameter(res_ed, "EnergyLimitParameter__EnergyReservoirStorage")
 
     res_uc = res.decision_problem_results["UC"]
-    p_out_bat = read_realized_variable(res_uc, "ActivePowerOutVariable__GenericBattery")
+    p_out_bat = read_realized_variable(res_uc, "ActivePowerOutVariable__EnergyReservoirStorage")
 
     @test isapprox(param_ed[!, 2], p_out_bat[!, 2] / 100.0; atol=1e-4)
 end
@@ -189,7 +189,7 @@ end
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
     template = get_thermal_dispatch_template_network()
     storage_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict(
             "reservation" => false,

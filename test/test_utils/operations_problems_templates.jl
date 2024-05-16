@@ -80,7 +80,7 @@ function get_template_basic_uc_storage_simulation()
     set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
     set_device_model!(template, PowerLoad, StaticPowerLoad)
     device_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,
@@ -100,7 +100,7 @@ function get_template_dispatch_storage_simulation()
     set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
     set_device_model!(template, PowerLoad, StaticPowerLoad)
     device_model = DeviceModel(
-        GenericBattery,
+        EnergyReservoirStorage,
         StorageDispatchWithReserves;
         attributes=Dict{String, Any}(
             "reservation" => true,

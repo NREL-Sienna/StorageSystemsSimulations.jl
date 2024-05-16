@@ -17,7 +17,7 @@ using HiGHS # solver
 ## Data
 
 !!! note
-    
+
     `PowerSystemCaseBuilder.jl` is a helper library that makes it easier to reproduce examples in the documentation and tutorials. Normally you would pass your local files to create the system data instead of calling the function `build_system`.
     For more details visit [PowerSystemCaseBuilder Documentation](https://nrel-sienna.github.io/PowerSystems.jl/stable/tutorials/powersystembuilder/)
 
@@ -33,7 +33,7 @@ set_available!(orcd, false)
 ```
 
 ```@example op_problem
-batt = get_component(BatteryEMS, c_sys5_bat, "Bat2")
+batt = get_component(EnergyReservoirStorage, c_sys5_bat, "Bat2")
 
 operation_cost = get_operation_cost(batt)
 ```
@@ -48,7 +48,7 @@ set_device_model!(template_uc, Line, StaticBranch)
 
 ```@example op_problem
 storage_model = DeviceModel(
-    BatteryEMS,
+    EnergyReservoirStorage,
     StorageDispatchWithReserves;
     attributes=Dict(
         "reservation" => true,
