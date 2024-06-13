@@ -12,7 +12,7 @@ struct EnergyTargetFeedforward <: PSI.AbstractAffectFeedforward
         affected_values::Vector{DataType},
         target_period::Int,
         penalty_cost::Float64,
-        meta=PSI.CONTAINER_KEY_EMPTY_META,
+        meta=ISOPT.CONTAINER_KEY_EMPTY_META,
     ) where {T}
         values_vector = Vector{PSI.VariableKey}(undef, length(affected_values))
         for (ix, v) in enumerate(affected_values)
@@ -135,7 +135,7 @@ struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
         source::Type{T},
         affected_values::Vector{DataType},
         number_of_periods::Int,
-        meta=PSI.CONTAINER_KEY_EMPTY_META,
+        meta=ISOPT.CONTAINER_KEY_EMPTY_META,
     ) where {T}
         values_vector = Vector{PSI.VariableKey}(undef, length(affected_values))
         for (ix, v) in enumerate(affected_values)
