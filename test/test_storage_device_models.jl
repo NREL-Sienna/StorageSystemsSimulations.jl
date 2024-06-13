@@ -127,7 +127,7 @@ end
 
 ### Feedforward Test ###
 # TODO: Feedforward debugging
-@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with BookKeeping model" begin
+@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with StorageDispatch model" begin
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;

@@ -103,6 +103,12 @@ function mock_construct_device!(
     set_device_model!(problem.template, model)
     template = PSI.get_template(problem)
     PSI.finalize_template!(template, PSI.get_system(problem))
+    settings = PSI.get_settings(problem)
+    PSI.set_resolution!(
+        settings,
+        first(PSY.get_time_series_resolutions(PSI.get_system(problem))),
+    )
+    PSI.set_horizon!(settings, PSY.get_forecast_horizon(PSI.get_system(problem)))
     PSI.init_optimization_container!(
         PSI.get_optimization_container(problem),
         PSI.get_network_model(template),
