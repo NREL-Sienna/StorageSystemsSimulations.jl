@@ -22,9 +22,9 @@ PSI.get_variable_multiplier(::PSI.ReactivePowerVariable, d::Type{<:PSY.Storage},
 
 ############## EnergyVariable, Storage ####################
 PSI.get_variable_binary(::PSI.EnergyVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
-PSI.get_variable_upper_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).max
-PSI.get_variable_lower_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).min
-PSI.get_variable_warm_start_value(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_initial_energy(d)
+PSI.get_variable_upper_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_storage_level_limits(d).max * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
+PSI.get_variable_lower_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_storage_level_limits(d).min * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
+PSI.get_variable_warm_start_value(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_initial_storage_capacity_level(d) * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
 
 ############## ReservationVariable, Storage ####################
 PSI.get_variable_binary(::PSI.ReservationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = true
@@ -123,7 +123,10 @@ PSI.initial_condition_default(
     ::PSI.InitialEnergyLevel,
     d::PSY.Storage,
     ::AbstractStorageFormulation,
-) = PSY.get_initial_energy(d)
+) =
+    PSY.get_initial_storage_capacity_level(d) *
+    PSY.get_storage_capacity(d) *
+    PSY.get_conversion_factor(d)
 PSI.initial_condition_variable(
     ::PSI.InitialEnergyLevel,
     d::PSY.Storage,
@@ -286,7 +289,15 @@ function PSI.get_min_max_limits(
     ::Type{StateofChargeLimitsConstraint},
     ::Type{<:AbstractStorageFormulation},
 )
-    return PSY.get_state_of_charge_limits(d)
+    min_max_limits = (
+        min=PSY.get_storage_level_limits(d).min *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d),
+        max=PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d),
+    )
+    return min_max_limits
 end
 
 function PSI.add_constraints!(
@@ -936,7 +947,14 @@ function PSI.add_constraints!(
         ci_name = PSY.get_name(storage)
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
-        soc_limits = PSY.get_state_of_charge_limits(storage)
+        soc_limits = (
+            min=PSY.get_storage_level_limits(storage).min *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+            max=PSY.get_storage_level_limits(storage).max *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+        )
         for service in PSY.get_services(storage)
             sustained_time = PSY.get_sustained_time(service)
             num_periods = sustained_time / Dates.value(Dates.Second(resolution))
@@ -1078,7 +1096,14 @@ function PSI.add_constraints!(
         ci_name = PSY.get_name(storage)
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
-        soc_limits = PSY.get_state_of_charge_limits(storage)
+        soc_limits = (
+            min=PSY.get_storage_level_limits(storage).min *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+            max=PSY.get_storage_level_limits(storage).max *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+        )
         expr_up_discharge = Set()
         expr_dn_charge = Set()
         for service in PSY.get_services(storage)
@@ -1270,7 +1295,10 @@ function add_cycling_charge_without_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1302,7 +1330,10 @@ function add_cycling_charge_with_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1350,7 +1381,10 @@ function add_cycling_discharge_without_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1383,7 +1417,10 @@ function add_cycling_discharge_with_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
