@@ -90,7 +90,7 @@ function psi_checksolve_test(model::DecisionModel, status, expected_result, tol=
     @test isapprox(obj_value, expected_result, atol=tol)
 end
 
-function psi_ptdf_lmps(res::ProblemResults, ptdf)
+function psi_ptdf_lmps(res::OptimizationProblemResults, ptdf)
     cp_duals = read_dual(res, PSI.ConstraintKey(CopperPlateBalanceConstraint, PSY.System))
     λ = Matrix{Float64}(cp_duals[:, propertynames(cp_duals) .!= :DateTime])
 
@@ -304,9 +304,12 @@ function check_energy_initial_conditions_values(model, ::Type{T}) where {T <: PS
         T,
     )
     for ic in ic_data
-        name = PSY.get_name(ic.component)
+        d = ic.component
+        name = PSY.get_name(d)
         e_value = PSI.jump_value(PSI.get_value(ic))
-        @test PSY.get_initial_energy(ic.component) == e_value
+        @test PSY.get_initial_storage_capacity_level(d) *
+              PSY.get_storage_capacity(d) *
+              PSY.get_conversion_factor(d) == e_value
     end
 end
 
@@ -414,7 +417,7 @@ function check_initialization_constraint_count(
     ::S,
     ::Type{T};
     filter_func=PSY.get_available,
-    meta=PSI.CONTAINER_KEY_EMPTY_META,
+    meta=ISOPT.CONTAINER_KEY_EMPTY_META,
 ) where {S <: PSI.ConstraintType, T <: PSY.Component}
     container = model.internal.ic_model_container
     no_component = length(PSY.get_components(filter_func, T, model.sys))
@@ -428,7 +431,7 @@ function check_constraint_count(
     ::S,
     ::Type{T};
     filter_func=PSY.get_available,
-    meta=PSI.CONTAINER_KEY_EMPTY_META,
+    meta=ISOPT.CONTAINER_KEY_EMPTY_META,
 ) where {S <: PSI.ConstraintType, T <: PSY.Component}
     no_component = length(PSY.get_components(filter_func, T, model.sys))
     time_steps = PSI.get_time_steps(PSI.get_optimization_container(model))[end]
