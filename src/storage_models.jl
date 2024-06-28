@@ -90,7 +90,7 @@ function PSI.variable_cost(
     ::PSY.Storage,
     ::AbstractStorageFormulation,
 )
-    return PSY.CostCurve(PSY.LinearCurve(REG_COST), PSY.UnitSystem.SYSTEM_BASE, 0.0)
+    return PSY.CostCurve(PSY.LinearCurve(REG_COST), PSY.UnitSystem.SYSTEM_BASE)
 end
 
 function PSI.get_default_time_series_names(
