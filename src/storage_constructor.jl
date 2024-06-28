@@ -219,7 +219,7 @@ function PSI.construct_device!(
     model::PSI.DeviceModel{St, D},
     network_model::PSI.NetworkModel{S},
 ) where {St <: PSY.Storage, D <: StorageDispatchWithReserves, S <: PM.AbstractPowerModel}
-    devices = PSI.get_available_components(St, sys)
+    devices = PSI.get_available_components(model, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
     PSI.add_variables!(container, PSI.ReactivePowerVariable, devices, D())
 
@@ -252,7 +252,7 @@ function PSI.construct_device!(
     model::PSI.DeviceModel{St, D},
     network_model::PSI.NetworkModel{S},
 ) where {St <: PSY.Storage, D <: StorageDispatchWithReserves, S <: PM.AbstractPowerModel}
-    devices = PSI.get_available_components(St, sys)
+    devices = PSI.get_available_components(model, sys)
     _active_power_and_energy_bounds(container, devices, model, network_model)
 
     PSI.add_constraints!(
@@ -318,7 +318,7 @@ function PSI.construct_device!(
     D <: StorageDispatchWithReserves,
     S <: PM.AbstractActivePowerModel,
 }
-    devices = PSI.get_available_components(St, sys)
+    devices = PSI.get_available_components(model, sys)
     _active_power_variables_and_expressions(container, devices, model, network_model)
 
     if PSI.get_attribute(model, "regularization")
@@ -345,7 +345,7 @@ function PSI.construct_device!(
     D <: StorageDispatchWithReserves,
     S <: PM.AbstractActivePowerModel,
 }
-    devices = PSI.get_available_components(St, sys)
+    devices = PSI.get_available_components(model, sys)
     _active_power_and_energy_bounds(container, devices, model, network_model)
 
     # Energy Balanace limits

@@ -10,7 +10,7 @@ The formulation supports the following attributes. See Documentation for more de
 
 ```julia
 DeviceModel(
-    StorageType, # E.g. BatteryEMS or GenericStorage
+    StorageType, # E.g. EnergyReservoirStorage or GenericStorage
     StorageDispatchWithReserves;
     attributes=Dict(
         "reservation" => true,

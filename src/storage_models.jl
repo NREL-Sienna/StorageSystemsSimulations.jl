@@ -22,9 +22,9 @@ PSI.get_variable_multiplier(::PSI.ReactivePowerVariable, d::Type{<:PSY.Storage},
 
 ############## EnergyVariable, Storage ####################
 PSI.get_variable_binary(::PSI.EnergyVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
-PSI.get_variable_upper_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).max
-PSI.get_variable_lower_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_state_of_charge_limits(d).min
-PSI.get_variable_warm_start_value(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_initial_energy(d)
+PSI.get_variable_upper_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_storage_level_limits(d).max * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
+PSI.get_variable_lower_bound(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_storage_level_limits(d).min * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
+PSI.get_variable_warm_start_value(::PSI.EnergyVariable, d::PSY.Storage, ::AbstractStorageFormulation) = PSY.get_initial_storage_capacity_level(d) * PSY.get_storage_capacity(d) * PSY.get_conversion_factor(d)
 
 ############## ReservationVariable, Storage ####################
 PSI.get_variable_binary(::PSI.ReservationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = true
@@ -63,14 +63,14 @@ PSI.objective_function_multiplier(::PSI.VariableType, ::AbstractStorageFormulati
 PSI.objective_function_multiplier(::StorageEnergySurplusVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 PSI.objective_function_multiplier(::StorageEnergyShortageVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergySurplusVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
-PSI.proportional_cost(cost::PSY.StorageManagementCost, ::StorageEnergyShortageVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
-PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageChargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
-PSI.proportional_cost(::PSY.StorageManagementCost, ::StorageDischargeCyclingSlackVariable, ::PSY.BatteryEMS, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergySurplusVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
+PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergyShortageVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
+PSI.proportional_cost(::PSY.StorageCost, ::StorageChargeCyclingSlackVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
+PSI.proportional_cost(::PSY.StorageCost, ::StorageDischargeCyclingSlackVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
 
 
-PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
-PSI.variable_cost(cost::PSY.StorageManagementCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_variable(cost)
+PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerOutVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_discharge_variable_cost(cost)
+PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerInVariable, ::PSY.Storage, ::AbstractStorageFormulation)=PSY.get_charge_variable_cost(cost)
 
 ######################## Parameters ##################################################
 
@@ -85,13 +85,12 @@ PSI.get_variable_lower_bound(::StorageRegularizationVariable, d::PSY.Storage, ::
 #! format: on
 
 function PSI.variable_cost(
-    cost::PSY.StorageManagementCost,
+    cost::PSY.StorageCost,
     ::StorageRegularizationVariable,
     ::PSY.Storage,
     ::AbstractStorageFormulation,
 )
-    max_val = max(REG_COST, cost.variable.cost[2] * REG_COST)
-    return PSY.VariableCost(max_val)
+    return PSY.CostCurve(PSY.LinearCurve(REG_COST), PSY.UnitSystem.SYSTEM_BASE)
 end
 
 function PSI.get_default_time_series_names(
@@ -102,20 +101,7 @@ function PSI.get_default_time_series_names(
 end
 
 function PSI.get_default_attributes(
-    ::Type{PSY.GenericBattery},
-    ::Type{T},
-) where {T <: AbstractStorageFormulation}
-    return Dict{String, Any}(
-        "reservation" => true,
-        "cycling_limits" => false,
-        "energy_target" => false,
-        "complete_coverage" => false,
-        "regularization" => false,
-    )
-end
-
-function PSI.get_default_attributes(
-    ::Type{PSY.BatteryEMS},
+    ::Type{PSY.EnergyReservoirStorage},
     ::Type{T},
 ) where {T <: AbstractStorageFormulation}
     return Dict{String, Any}(
@@ -137,7 +123,10 @@ PSI.initial_condition_default(
     ::PSI.InitialEnergyLevel,
     d::PSY.Storage,
     ::AbstractStorageFormulation,
-) = PSY.get_initial_energy(d)
+) =
+    PSY.get_initial_storage_capacity_level(d) *
+    PSY.get_storage_capacity(d) *
+    PSY.get_conversion_factor(d)
 PSI.initial_condition_variable(
     ::PSI.InitialEnergyLevel,
     d::PSY.Storage,
@@ -300,7 +289,15 @@ function PSI.get_min_max_limits(
     ::Type{StateofChargeLimitsConstraint},
     ::Type{<:AbstractStorageFormulation},
 )
-    return PSY.get_state_of_charge_limits(d)
+    min_max_limits = (
+        min=PSY.get_storage_level_limits(d).min *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d),
+        max=PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d),
+    )
+    return min_max_limits
 end
 
 function PSI.add_constraints!(
@@ -950,7 +947,14 @@ function PSI.add_constraints!(
         ci_name = PSY.get_name(storage)
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
-        soc_limits = PSY.get_state_of_charge_limits(storage)
+        soc_limits = (
+            min=PSY.get_storage_level_limits(storage).min *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+            max=PSY.get_storage_level_limits(storage).max *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+        )
         for service in PSY.get_services(storage)
             sustained_time = PSY.get_sustained_time(service)
             num_periods = sustained_time / Dates.value(Dates.Second(resolution))
@@ -1092,7 +1096,14 @@ function PSI.add_constraints!(
         ci_name = PSY.get_name(storage)
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
-        soc_limits = PSY.get_state_of_charge_limits(storage)
+        soc_limits = (
+            min=PSY.get_storage_level_limits(storage).min *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+            max=PSY.get_storage_level_limits(storage).max *
+                PSY.get_storage_capacity(storage) *
+                PSY.get_conversion_factor(storage),
+        )
         expr_up_discharge = Set()
         expr_dn_charge = Set()
         for service in PSY.get_services(storage)
@@ -1236,36 +1247,12 @@ function PSI.add_constraints!(
 end
 
 function PSI.add_constraints!(
-    ::PSI.OptimizationContainer,
-    ::Type{StateofChargeTargetConstraint},
-    devices::IS.FlattenIteratorWrapper{V},
-    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
-    network_model::PSI.NetworkModel{X},
-) where {V <: PSY.GenericBattery, X <: PM.AbstractPowerModel}
-    error("$V is not supported for $(PSY.GenericBattery). \
-    Set the attribute energy_target to false in the device model")
-    return
-end
-
-function PSI.add_constraints!(
-    ::PSI.OptimizationContainer,
-    ::Type{<:Union{StorageCyclingCharge, StorageCyclingDischarge}},
-    devices::IS.FlattenIteratorWrapper{V},
-    model::PSI.DeviceModel{V, StorageDispatchWithReserves},
-    network_model::PSI.NetworkModel{X},
-) where {V <: PSY.GenericBattery, X <: PM.AbstractPowerModel}
-    error("$V is not supported for $(PSY.GenericBattery). \
-    Set the attribute energy_target to false in the device model")
-    return
-end
-
-function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{StateofChargeTargetConstraint},
     devices::IS.FlattenIteratorWrapper{V},
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     energy_var = PSI.get_variable(container, PSI.EnergyVariable(), V)
     surplus_var = PSI.get_variable(container, StorageEnergySurplusVariable(), V)
     shortfall_var = PSI.get_variable(container, StorageEnergyShortageVariable(), V)
@@ -1295,7 +1282,7 @@ function add_cycling_charge_without_reserves!(
     devices::IS.FlattenIteratorWrapper{V},
     ::PSI.DeviceModel{V, StorageDispatchWithReserves},
     ::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
@@ -1308,7 +1295,10 @@ function add_cycling_charge_without_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1326,7 +1316,7 @@ function add_cycling_charge_with_reserves!(
     devices::IS.FlattenIteratorWrapper{V},
     ::PSI.DeviceModel{V, StorageDispatchWithReserves},
     ::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
@@ -1340,7 +1330,10 @@ function add_cycling_charge_with_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1361,7 +1354,7 @@ function PSI.add_constraints!(
     devices::IS.FlattenIteratorWrapper{V},
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     if PSI.has_service_model(model)
         add_cycling_charge_with_reserves!(container, devices, model, network_model)
     else
@@ -1375,7 +1368,7 @@ function add_cycling_discharge_without_reserves!(
     devices::IS.FlattenIteratorWrapper{V},
     ::PSI.DeviceModel{V, StorageDispatchWithReserves},
     ::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
@@ -1388,7 +1381,10 @@ function add_cycling_discharge_without_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1407,7 +1403,7 @@ function add_cycling_discharge_with_reserves!(
     devices::IS.FlattenIteratorWrapper{V},
     ::PSI.DeviceModel{V, StorageDispatchWithReserves},
     ::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
@@ -1421,7 +1417,10 @@ function add_cycling_discharge_with_reserves!(
 
     for d in devices
         name = PSY.get_name(d)
-        e_max = PSY.get_state_of_charge_limits(d).max
+        e_max =
+            PSY.get_storage_level_limits(d).max *
+            PSY.get_storage_capacity(d) *
+            PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
         constraint[name] = JuMP.@constraint(
@@ -1441,7 +1440,7 @@ function PSI.add_constraints!(
     devices::IS.FlattenIteratorWrapper{V},
     model::PSI.DeviceModel{V, StorageDispatchWithReserves},
     network_model::PSI.NetworkModel{X},
-) where {V <: PSY.BatteryEMS, X <: PM.AbstractPowerModel}
+) where {V <: PSY.EnergyReservoirStorage, X <: PM.AbstractPowerModel}
     if PSI.has_service_model(model)
         add_cycling_discharge_with_reserves!(container, devices, model, network_model)
     else
@@ -1630,8 +1629,8 @@ end
 
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
-    devices::IS.FlattenIteratorWrapper{PSY.BatteryEMS},
-    model::PSI.DeviceModel{PSY.BatteryEMS, T},
+    devices::IS.FlattenIteratorWrapper{PSY.EnergyReservoirStorage},
+    model::PSI.DeviceModel{PSY.EnergyReservoirStorage, T},
     ::Type{V},
 ) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
@@ -1678,7 +1677,7 @@ function PSI.add_proportional_cost!(
     formulation::AbstractStorageFormulation,
 ) where {
     T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable},
-    U <: PSY.BatteryEMS,
+    U <: PSY.EnergyReservoirStorage,
 }
     variable = PSI.get_variable(container, T(), U)
     for d in devices
@@ -1696,7 +1695,7 @@ function PSI.add_proportional_cost!(
     formulation::AbstractStorageFormulation,
 ) where {
     T <: Union{StorageEnergyShortageVariable, StorageEnergySurplusVariable},
-    U <: PSY.BatteryEMS,
+    U <: PSY.EnergyReservoirStorage,
 }
     variable = PSI.get_variable(container, T(), U)
     for d in devices
@@ -1754,14 +1753,13 @@ function PSI.calculate_aux_variable_value!(
     ::PSI.AuxVarKey{StorageEnergyOutput, T},
     system::PSY.System,
 ) where {T <: PSY.Storage}
-    devices = PSI.get_available_components(T, system)
     time_steps = PSI.get_time_steps(container)
     resolution = PSI.get_resolution(container)
     fraction_of_hour = Dates.value(Dates.Minute(resolution)) / PSI.MINUTES_IN_HOUR
     p_variable_results = PSI.get_variable(container, PSI.ActivePowerOutVariable(), T)
     aux_variable_container = PSI.get_aux_variable(container, StorageEnergyOutput(), T)
-    for d in devices, t in time_steps
-        name = PSY.get_name(d)
+    device_names = axes(aux_variable_container, 1)
+    for name in device_names, t in time_steps
         aux_variable_container[name, t] =
             PSI.jump_value(p_variable_results[name, t]) * fraction_of_hour
     end
