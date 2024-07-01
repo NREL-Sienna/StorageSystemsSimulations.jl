@@ -1,8 +1,8 @@
 # NOTE: None of the models and function in this file are functional. All of these are used for testing purposes and do not represent valid examples either to develop custom
 # models. Please refer to the documentation.
 
-struct MockOperationProblem <: PSI.DecisionProblem end
-struct MockEmulationProblem <: PSI.EmulationProblem end
+struct MockOperationProblem <: PSI.DefaultDecisionProblem end
+struct MockEmulationProblem <: PSI.DefaultEmulationProblem end
 
 function PSI.DecisionModel(
     ::Type{MockOperationProblem},
@@ -120,7 +120,7 @@ function mock_construct_device!(
         built_for_recurrent_solves
     PSI.initialize_system_expressions!(
         PSI.get_optimization_container(problem),
-        PSI.get_network_formulation(template),
+        PSI.get_network_model(template),
         PSI.get_network_model(template).subnetworks,
         PSI.get_system(problem),
         Dict{Int64, Set{Int64}}(),
