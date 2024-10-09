@@ -316,3 +316,12 @@ function PSI.update_parameter_values!(
     )
     return
 end
+
+function PSI.update_parameter_values!(
+    model::PSI.EmulationModel,
+    key::PSI.ParameterKey{T, U},
+    input::PSI.DatasetContainer{PSI.InMemoryDataset},
+) where {T <: EnergyLimitParameter, U <: PSY.Generator}
+    #TODO
+    return
+end
