@@ -16,13 +16,15 @@ function _build_battery(
     efficiency_out,
 )
     name = string(bus.number) * "_BATTERY"
-    device = BatteryEMS(;
+    device = EnergyReservoirStorage(;
         name=name,
         available=true,
         bus=bus,
         prime_mover_type=PSY.PrimeMovers.BA,
-        initial_energy=0.2,
-        state_of_charge_limits=(min=energy_capacity * 0.0, max=energy_capacity),
+        storage_technology_type=PSY.StorageTech.OTHER_CHEM,
+        storage_capacity=energy_capacity,
+        storage_level_limits=(min=0.0, max=1.0),
+        initial_storage_capacity_level=0.2,
         rating=rating,
         active_power=rating,
         cycle_limits=1000.0,
@@ -33,7 +35,7 @@ function _build_battery(
         reactive_power=0.0,
         reactive_power_limits=nothing,
         base_power=100.0,
-        operation_cost=PSY.StorageManagementCost(
+        operation_cost=PSY.StorageCost(
             energy_shortage_cost=1000.0,
             energy_surplus_cost=1000.0,
             fixed=0.0,

@@ -1,8 +1,8 @@
 # NOTE: None of the models and function in this file are functional. All of these are used for testing purposes and do not represent valid examples either to develop custom
 # models. Please refer to the documentation.
 
-struct MockOperationProblem <: PSI.DecisionProblem end
-struct MockEmulationProblem <: PSI.EmulationProblem end
+struct MockOperationProblem <: PSI.DefaultDecisionProblem end
+struct MockEmulationProblem <: PSI.DefaultEmulationProblem end
 
 function PSI.DecisionModel(
     ::Type{MockOperationProblem},
@@ -103,9 +103,15 @@ function mock_construct_device!(
     set_device_model!(problem.template, model)
     template = PSI.get_template(problem)
     PSI.finalize_template!(template, PSI.get_system(problem))
+    settings = PSI.get_settings(problem)
+    PSI.set_resolution!(
+        settings,
+        first(PSY.get_time_series_resolutions(PSI.get_system(problem))),
+    )
+    PSI.set_horizon!(settings, PSY.get_forecast_horizon(PSI.get_system(problem)))
     PSI.init_optimization_container!(
         PSI.get_optimization_container(problem),
-        PSI.get_network_formulation(template),
+        PSI.get_network_model(template),
         PSI.get_system(problem),
     )
     PSI.get_network_model(template).subnetworks =
@@ -114,7 +120,7 @@ function mock_construct_device!(
         built_for_recurrent_solves
     PSI.initialize_system_expressions!(
         PSI.get_optimization_container(problem),
-        PSI.get_network_formulation(template),
+        PSI.get_network_model(template),
         PSI.get_network_model(template).subnetworks,
         PSI.get_system(problem),
         Dict{Int64, Set{Int64}}(),
@@ -202,7 +208,7 @@ function setup_ic_model_container!(model::DecisionModel)
 
     PSI.init_optimization_container!(
         PSI.get_optimization_container(model),
-        PSI.get_network_formulation(PSI.get_template(model)),
+        PSI.get_network_model(PSI.get_template(model)),
         PSI.get_system(model),
     )
 
