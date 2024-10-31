@@ -6,14 +6,14 @@ CurrentModule = StorageSystemsSimulations
 
 ## Overview
 
-`StorageSimulations.jl` is a `PowerSimulations.jl` extension to support formulations and models
+`StorageSystemsSimulations.jl` is a `PowerSimulations.jl` extension to support formulations and models
 related to energy storage.
 
 An Operational Storage Model can have multiple combinations of different restrictions. For instance,
-it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSimulations.jl` heavily uses the `DeviceModel` attributes feature.
+it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSystemsSimulations.jl` heavily uses the `DeviceModel` attributes feature.
 
 A Storage Operational Model can have multiple combinations of different restrictions depending on the modeling objectives. For instance,
-it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSimulations.jl` heavily uses the `DeviceModel` attributes feature to configure the storage model.
+it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSystemsSimulations.jl` heavily uses the `DeviceModel` attributes feature to configure the storage model.
 
 For example, the formulation `StorageDispatchWithReserves` can be parametrized as follows when added to a `PowerSimulations.jl` model:
 
