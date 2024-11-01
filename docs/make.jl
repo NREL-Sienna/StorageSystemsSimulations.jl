@@ -12,8 +12,10 @@ pages = OrderedDict(
     #"Introductory Background" => ["background/discretization.md", "background/ancillary_services.md"],
     "Formulation Library" =>
         Any["StorageDispatchWithReserves" => "formulation_library/StorageDispatchWithReserves.md",],
-    "Code Base Developer Guide" => ["code_base_developer_guide/developer.md",
-        "code_base_developer_guide/internals.md"],
+    "Code Base Developer Guide" => [
+        "code_base_developer_guide/developer.md",
+        "code_base_developer_guide/internals.md",
+    ],
     "API Reference" => "api/StorageSystemsSimulations.md",
 )
 
