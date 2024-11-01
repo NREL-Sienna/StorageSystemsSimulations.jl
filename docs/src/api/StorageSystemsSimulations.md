@@ -1,4 +1,4 @@
-# StorageSystemsSimulations
+# Public API
 
 ```@meta
 CurrentModule = StorageSystemsSimulations
@@ -7,7 +7,7 @@ DocTestSetup  = quote
 end
 ```
 
-## StorageSystemsSimulations Variables (@id vars)
+## [Variables](@id vars)
 
 ```@docs
 AncillaryServiceVariableDischarge
@@ -20,13 +20,13 @@ StorageRegularizationVariableCharge
 StorageRegularizationVariableDischarge
 ```
 
-## StorageSystemsSimulations Auxiliary Variables (@id aux_vars)
+## [Auxiliary Variables](@id aux_vars)
 
 ```@docs
 StorageEnergyOutput
 ```
 
-## StorageSystemsSimulations Constraints (@id cons)
+## [Constraints](@id cons)
 
 ```@docs
 StateofChargeLimitsConstraint
@@ -41,22 +41,15 @@ ReserveDischargeConstraint
 ReserveChargeConstraint
 ```
 
-## StorageSystemsSimulations Parameters (@id params)
+## [Parameters](@id params)
 
 ```@docs
 EnergyLimitParameter
 ```
 
-## StorageSystemsSimulations FeedForwards (@id ffs)
+## [FeedForwards](@id ffs)
 
 ```@docs
 EnergyTargetFeedforward
 EnergyLimitFeedforward
-```
-
-## PowerSimulations Overloads and Internal Methods
-
-```@autodocs
-Modules = [StorageSystemsSimulations]
-Public = false
 ```
