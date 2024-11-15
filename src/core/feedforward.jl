@@ -52,7 +52,6 @@ function PSI._add_feedforward_arguments!(
         container,
         StorageEnergyShortageVariable,
         devices,
-        time_steps,
         PSI.get_formulation(model)(),
     )
     return
