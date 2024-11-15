@@ -44,6 +44,7 @@ function PSI._add_feedforward_arguments!(
     devices::IS.FlattenIteratorWrapper{T},
     ff::EnergyTargetFeedforward,
 ) where {T <: PSY.Storage}
+    time_steps = PSI.get_time_steps(container)
     parameter_type = PSI.get_default_parameter_type(ff, T)
     PSI.add_parameters!(container, parameter_type, ff, model, devices)
     # Enabling this FF requires the addition of an extra variable
@@ -51,6 +52,7 @@ function PSI._add_feedforward_arguments!(
         container,
         StorageEnergyShortageVariable,
         devices,
+        time_steps,
         PSI.get_formulation(model)(),
     )
     return
@@ -111,12 +113,12 @@ function PSI.add_feedforward_constraints!(
             name = PSY.get_name(d)
             con_ub[name] = JuMP.@constraint(
                 PSI.get_jump_model(container),
-                variable[name, target_period] + slack_var[name] >=
+                variable[name, target_period] + slack_var[name, target_period] >=
                 param[name, target_period] * multiplier[name, target_period]
             )
             PSI.add_to_objective_invariant_expression!(
                 container,
-                slack_var[name] * penalty_cost,
+                slack_var[name, target_period] * penalty_cost,
             )
         end
     end
