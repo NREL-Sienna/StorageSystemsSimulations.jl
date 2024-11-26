@@ -43,7 +43,7 @@ abstract type StorageRegularizationVariable <: PSI.VariableType end
 """
 Slack variable for energy storage levels > target storage levels
 
-    Docs nomenclature: ``z^{st, ch}``
+Docs nomenclature: ``z^{st, ch}``
 """
 struct StorageRegularizationVariableCharge <: StorageRegularizationVariable end
 
