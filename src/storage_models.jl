@@ -620,6 +620,44 @@ get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = PS
 get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
 #! format: on
 
+function PSI.add_to_expression!(
+    container::PSI.OptimizationContainer,
+    ::Type{T},
+    ::Type{U},
+    devices::IS.FlattenIteratorWrapper{V},
+    device_model::PSI.DeviceModel{V, W},
+    network_model::PSI.NetworkModel{PSI.AreaPTDFPowerModel},
+) where {
+    T <: PSI.ActivePowerBalance,
+    U <: Union{PSI.ActivePowerOutVariable, PSI.ActivePowerInVariable},
+    V <: PSY.Storage,
+    W <: PSI.AbstractDeviceFormulation,
+}
+    variable = PSI.get_variable(container, U(), V)
+    area_expr = PSI.get_expression(container, T(), PSY.Area)
+    nodal_expr = PSI.get_expression(container, T(), PSY.ACBus)
+    radial_network_reduction = PSI.get_radial_network_reduction(network_model)
+    for d in devices
+        name = PSY.get_name(d)
+        device_bus = PSY.get_bus(d)
+        area_name = PSY.get_name(PSY.get_area(device_bus))
+        bus_no = PNM.get_mapped_bus_number(radial_network_reduction, device_bus)
+        for t in PSI.get_time_steps(container)
+            PSI._add_to_jump_expression!(
+                area_expr[area_name, t],
+                variable[name, t],
+                PSI.get_variable_multiplier(U(), V, W()),
+            )
+            PSI._add_to_jump_expression!(
+                nodal_expr[bus_no, t],
+                variable[name, t],
+                PSI.get_variable_multiplier(U(), V, W()),
+            )
+        end
+    end
+    return
+end
+
 function add_to_expression!(
     container::PSI.OptimizationContainer,
     ::Type{T},
