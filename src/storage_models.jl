@@ -33,11 +33,23 @@ PSI.get_variable_binary(::PSI.ReservationVariable, ::Type{<:PSY.Storage}, ::Abst
 PSI.get_variable_binary(::AncillaryServiceVariableDischarge, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 PSI.get_variable_binary(::AncillaryServiceVariableCharge, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
 
-function PSI.get_variable_upper_bound(::AncillaryServiceVariableCharge, r::PSY.Reserve, d::PSY.Storage, ::AbstractStorageFormulation)
+function PSI.get_variable_upper_bound(::PSI.ActivePowerReserveVariable, r::PSY.ReserveNonSpinning, d::PSY.Storage, ::PSI.AbstractReservesFormulation)
+    return PSY.get_max_output_fraction(r) * (PSY.get_input_active_power_limits(d).max + PSY.get_output_active_power_limits(d).max)
+end
+
+function PSI.get_variable_upper_bound(::AncillaryServiceVariableCharge, r::Union{PSY.Reserve, PSY.ReserveNonSpinning}, d::PSY.Storage, ::AbstractStorageFormulation)
     return PSY.get_max_output_fraction(r) * PSY.get_input_active_power_limits(d).max
 end
 
-function PSI.get_variable_upper_bound(::AncillaryServiceVariableDischarge, r::PSY.Reserve, d::PSY.Storage, ::AbstractStorageFormulation)
+function PSI.get_variable_upper_bound(::AncillaryServiceVariableDischarge, r::Union{PSY.Reserve, PSY.ReserveNonSpinning}, d::PSY.Storage, ::AbstractStorageFormulation)
+    return PSY.get_max_output_fraction(r) * PSY.get_output_active_power_limits(d).max
+end
+
+function PSI.get_variable_upper_bound(::AncillaryServiceVariableCharge, r::PSY.ReserveNonSpinning, d::PSY.Storage, ::AbstractStorageFormulation)
+    return PSY.get_max_output_fraction(r) * PSY.get_input_active_power_limits(d).max
+end
+
+function PSI.get_variable_upper_bound(::AncillaryServiceVariableDischarge, r::PSY.ReserveNonSpinning, d::PSY.Storage, ::AbstractStorageFormulation)
     return PSY.get_max_output_fraction(r) * PSY.get_output_active_power_limits(d).max
 end
 
@@ -482,7 +494,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveAssignmentBalanceDownCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 0.0
 
 PSI.get_variable_multiplier(
@@ -498,7 +510,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveAssignmentBalanceUpCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 1.0
 
 PSI.get_variable_multiplier(
@@ -514,7 +526,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveAssignmentBalanceDownDischarge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 0.0
 
 PSI.get_variable_multiplier(
@@ -530,7 +542,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveAssignmentBalanceUpDischarge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 1.0
 
 PSI.get_variable_multiplier(
@@ -547,7 +559,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveDeploymentBalanceDownCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 0.0
 
 PSI.get_variable_multiplier(
@@ -563,7 +575,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveDeploymentBalanceUpCharge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 1.0
 
 PSI.get_variable_multiplier(
@@ -579,7 +591,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveDeploymentBalanceDownDischarge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 0.0
 
 PSI.get_variable_multiplier(
@@ -595,7 +607,7 @@ PSI.get_variable_multiplier(
     ::Type{ReserveDeploymentBalanceUpDischarge},
     d::PSY.Storage,
     ::StorageDispatchWithReserves,
-    ::PSY.Reserve{PSY.ReserveUp},
+    ::Union{PSY.Reserve{PSY.ReserveUp}, PSY.VariableReserveNonSpinning},
 ) = 1.0
 
 PSI.get_variable_multiplier(
@@ -608,16 +620,16 @@ PSI.get_variable_multiplier(
 
 #! format: off
 # Use 1.0 because this is to allow to reuse the code below on add_to_expression
-get_fraction(::Type{ReserveAssignmentBalanceUpDischarge}, d::PSY.Reserve) = 1.0
-get_fraction(::Type{ReserveAssignmentBalanceUpCharge}, d::PSY.Reserve) = 1.0
-get_fraction(::Type{ReserveAssignmentBalanceDownDischarge}, d::PSY.Reserve) = 1.0
-get_fraction(::Type{ReserveAssignmentBalanceDownCharge}, d::PSY.Reserve) = 1.0
+get_fraction(::Type{ReserveAssignmentBalanceUpDischarge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = 1.0
+get_fraction(::Type{ReserveAssignmentBalanceUpCharge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = 1.0
+get_fraction(::Type{ReserveAssignmentBalanceDownDischarge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = 1.0
+get_fraction(::Type{ReserveAssignmentBalanceDownCharge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = 1.0
 
 # Needs to implement served fraction in PSY
-get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
-get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
-get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
-get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::PSY.Reserve) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceUpDischarge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceUpCharge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceDownDischarge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = PSY.get_deployed_fraction(d)
+get_fraction(::Type{ReserveDeploymentBalanceDownCharge}, d::Union{PSY.Reserve, PSY.VariableReserveNonSpinning}) = PSY.get_deployed_fraction(d)
 #! format: on
 
 function PSI.add_to_expression!(
@@ -1032,7 +1044,7 @@ function PSI.add_constraints!(
 
     for service in services_set
         service_name = PSY.get_name(service)
-        if typeof(service) <: PSY.Reserve{PSY.ReserveUp}
+        if typeof(service) <: Union{PSY.Reserve{PSY.ReserveUp}, PSY.ReserveNonSpinning}
             PSI.add_constraints_container!(
                 container,
                 T(),
@@ -1084,7 +1096,7 @@ function PSI.add_constraints!(
                 V,
                 "$(typeof(service))_$service_name",
             )
-            if typeof(service) <: PSY.Reserve{PSY.ReserveUp}
+            if typeof(service) <: Union{PSY.Reserve{PSY.ReserveUp}, PSY.ReserveNonSpinning}
                 con_discharge = PSI.get_constraint(
                     container,
                     T(),
