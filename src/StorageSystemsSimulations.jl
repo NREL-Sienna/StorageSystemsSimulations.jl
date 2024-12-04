@@ -45,7 +45,6 @@ import PowerSystems
 import PowerSimulations
 import MathOptInterface
 import PowerSimulations
-import PowerNetworkMatrices
 import PowerSystems
 import JuMP
 import Dates
@@ -54,7 +53,7 @@ import DataStructures: OrderedDict
 const MOI = MathOptInterface
 const PSI = PowerSimulations
 const PSY = PowerSystems
-const PNM = PowerNetworkMatrices
+const PNM = PSI.PNM
 const PM = PSI.PM
 const IS = InfrastructureSystems
 const ISOPT = InfrastructureSystems.Optimization
