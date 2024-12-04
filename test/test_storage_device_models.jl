@@ -155,7 +155,7 @@ end
     moi_tests(model, 122, 0, 72, 73, 24, true)
 end
 
-@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with BookKeeping model" begin
+@testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with StorageDispatch model" begin
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
@@ -181,6 +181,95 @@ end
     model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
     mock_construct_device!(model, device_model; built_for_recurrent_solves=true)
     moi_tests(model, 122, 0, 72, 73, 24, true)
+end
+
+@testset "Test Reserves from Storage" begin
+    template = get_thermal_dispatch_template_network(CopperPlatePowerModel)
+    device_model = DeviceModel(
+        EnergyReservoirStorage,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => true,
+            "complete_coverage" => true,
+            "regularization" => true,
+        ),
+    )
+    set_device_model!(template, device_model)
+    set_device_model!(template, RenewableDispatch, FixedOutput)
+    set_service_model!(
+        template,
+        ServiceModel(VariableReserve{ReserveUp}, RangeReserve, "Reserve3"),
+    )
+    set_service_model!(
+        template,
+        ServiceModel(VariableReserve{ReserveDown}, RangeReserve, "Reserve4"),
+    )
+
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; add_reserves=true)
+    model = DecisionModel(template, c_sys5_bat)
+    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    moi_tests(model, 458, 0, 574, 286, 125, true)
+
+    device_model = DeviceModel(
+        EnergyReservoirStorage,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => false,
+            "cycling_limits" => false,
+            "energy_target" => true,
+            "complete_coverage" => true,
+            "regularization" => true,
+        ),
+    )
+    set_device_model!(template, device_model)
+    model = DecisionModel(template, c_sys5_bat)
+    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    moi_tests(model, 434, 0, 574, 286, 125, false)
+end
+
+@testset "Test AreaPTDF System Balance" begin
+    sys = build_system(PSISystems, "two_area_pjm_DA")
+    transform_single_time_series!(sys, Hour(2), Hour(2))
+    bat = EnergyReservoirStorage(
+        name="bat",
+        available=true,
+        bus=get_bus(sys, 11),
+        prime_mover_type=PrimeMovers.BA,
+        storage_technology_type=StorageTech.OTHER_CHEM,
+        storage_capacity=4.0,
+        storage_level_limits=(min=0.0, max=1.0),
+        initial_storage_capacity_level=0.5,
+        rating=4.0,
+        active_power=4.0,
+        input_active_power_limits=(min=0.0, max=2.0),
+        output_active_power_limits=(min=0.0, max=2.0),
+        efficiency=(in=0.9, out=0.9),
+        reactive_power=0.0,
+        reactive_power_limits=(min=-2.0, max=2.0),
+        base_power=100.0,
+    )
+    add_component!(sys, bat)
+
+    template = get_thermal_dispatch_template_network(AreaPTDFPowerModel)
+    device_model = DeviceModel(
+        EnergyReservoirStorage,
+        StorageDispatchWithReserves;
+        attributes=Dict{String, Any}(
+            "reservation" => true,
+            "cycling_limits" => false,
+            "energy_target" => true,
+            "complete_coverage" => false,
+            "regularization" => true,
+        ),
+    )
+    set_device_model!(template, device_model)
+    set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
+
+    model = DecisionModel(template, sys)
+    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    moi_tests(model, 64, 0, 56, 52, 37, true)
 end
 
 #=
@@ -216,29 +305,5 @@ end
     model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
     mock_construct_device!(model, device_model; built_for_recurrent_solves=true)
     moi_tests(model, 121, 0, 74, 72, 24, true)
-end
-
-# To Fix
-@testset "Test Reserves from Storage" begin
-    template = get_thermal_dispatch_template_network(CopperPlatePowerModel)
-    set_device_model!(template, DeviceModel(EnergyReservoirStorage, BatteryAncillaryServices))
-    set_device_model!(template, RenewableDispatch, FixedOutput)
-    set_service_model!(
-        template,
-        ServiceModel(VariableReserve{ReserveUp}, RangeReserve, "Reserve3"),
-    )
-    set_service_model!(
-        template,
-        ServiceModel(VariableReserve{ReserveDown}, RangeReserve, "Reserve4"),
-    )
-    set_service_model!(
-        template,
-        ServiceModel(ReserveDemandCurve{ReserveUp}, StepwiseCostReserve, "ORDC1"),
-    )
-
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; add_reserves = true)
-    model = DecisionModel(template, c_sys5_bat)
-    @test build!(model; output_dir = mktempdir(; cleanup = true)) == PSI.BuildStatus.BUILT
-    moi_tests(model, 432, 0, 288, 264, 96, true)
 end
 =#
