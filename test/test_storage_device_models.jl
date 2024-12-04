@@ -267,13 +267,7 @@ end
     set_device_model!(template, device_model)
     set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
 
-    model = DecisionModel(
-        template,
-        sys;
-        name="UC",
-        optimizer=optimizer_with_attributes(Xpress.Optimizer, "MIPRELSTOP" => 1e-3),
-        store_variable_names=true,
-    )
+    model = DecisionModel(template, sys)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
     moi_tests(model, 64, 0, 56, 52, 37, true)
 end
