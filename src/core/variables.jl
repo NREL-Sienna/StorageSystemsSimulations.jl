@@ -7,7 +7,18 @@
 # ReservationVariable
 
 # Ancillary Service Assignment Variables
+"""
+Ancillary service fraction assigned to Storage Discharging to product p
+
+Docs abbreviation: ``sb^{std}_{p,t}``
+"""
 struct AncillaryServiceVariableDischarge <: PSI.VariableType end
+
+"""
+Ancillary service fraction assigned to Storage Charging to product p
+
+Docs abbreviation: ``sb^{stc}_{p,t}``
+"""
 struct AncillaryServiceVariableCharge <: PSI.VariableType end
 
 """
@@ -38,6 +49,9 @@ Docs nomenclature: ``c^{ds-}``
 """
 struct StorageDischargeCyclingSlackVariable <: PSI.VariableType end
 
+"""
+Abstract used for StorageRegularization variables
+"""
 abstract type StorageRegularizationVariable <: PSI.VariableType end
 
 """
