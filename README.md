@@ -10,7 +10,7 @@ For information on using the package, see the [stable documentation](https://nre
 
 ## Development
 
-Contributions to the development and enahancement of StorageSystemsSimulations is welcome. Please see [CONTRIBUTING.md](https://github.com/NREL-Sienna/StorageSystemsSimulations.jl/blob/master/CONTRIBUTING.md) for code contribution guidelines.
+Contributions to the development and enhancement of StorageSystemsSimulations is welcome. Please see [CONTRIBUTING.md](https://github.com/NREL-Sienna/StorageSystemsSimulations.jl/blob/master/CONTRIBUTING.md) for code contribution guidelines.
 
 ## License
 
