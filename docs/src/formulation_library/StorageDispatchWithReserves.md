@@ -139,7 +139,7 @@ StorageDispatchWithReserves
 & \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{stc,p,t-1} + p^{st,ch}_{t-1}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{stc,p,t-1}\right) &\\
 & - \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{stc,p,t} + p^{st,ch}_{t}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{stc,p,t}\right) \ge -z^{st, ch}_{t} & \forall t \in \mathcal{T} \setminus 1\\
 &\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{std,p,t-1} + p^{st,ds}_{t-1} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{std,p,t-1}\right) &\\
-&-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t-1} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \le z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1\\
+&-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \le z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1\\
 &\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{std,p,t-1} + p^{st,ds}_{t-1} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{std,p,t-1}\right) &\\
 &-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \ge -z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1
 \end{aligned}
