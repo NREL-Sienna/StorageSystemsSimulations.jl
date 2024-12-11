@@ -103,7 +103,7 @@ The specified constraints are formulated as:
 ```math
 \\begin{align*}
 & sb_{stc,p,t}  \\eta^{ch}_{st} N_{p} \\Delta t \\le E_{st}^{max} - e^{st}_{t}, \\quad \\forall p \\in \\mathcal{P}^{as_{dn}}, \\forall t \\in \\{1,\\dots, T\\} \\\\
-& sb_{std,p,t}  \\frac{1}{\\eta^{ds}_{st}} N_{p} \\Delta t \\leq e^{st}_{t}- E^{min}_{st} & \\forall p \\in \\mathcal{P}^{as_{up}}, \\forall t \\in \\{1,\\dots, T\\}
+& sb_{std,p,t}  \\frac{1}{\\eta^{ds}_{st}} N_{p} \\Delta t \\leq e^{st}_{t}- E^{min}_{st}, \\quad \\forall p \\in \\mathcal{P}^{as_{up}}, \\forall t \\in \\{1,\\dots, T\\}
 \\end{align*}
 ```
 """
