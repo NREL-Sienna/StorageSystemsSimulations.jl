@@ -8,7 +8,6 @@ using PowerSimulations
 using PowerSystems
 using JuMP
 using HiGHS
-using GLPK
 using Dates
 
 const IS = InfrastructureSystems
@@ -43,9 +42,6 @@ HiGHS_optimizer = JuMP.optimizer_with_attributes(
     "time_limit" => 100.0,
     "log_to_console" => false,
 )
-
-GLPK_optimizer =
-    JuMP.optimizer_with_attributes(GLPK.Optimizer, "msg_lev" => GLPK.GLP_MSG_OFF)
 
 """
 Copied @includetests from https://github.com/ssfrr/TestSetExtensions.jl.
