@@ -2,7 +2,6 @@ using Documenter
 using PowerSystems
 using StorageSystemsSimulations
 using DataStructures
-using DocumenterInterLinks
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
@@ -15,20 +14,10 @@ pages = OrderedDict(
         "Formulation Library" => "reference/formulation_library/StorageDispatchWithReserves.md",
         "Developers" => "reference/developers/code_base_developer_guide/developer.md",
         "API" => "reference/api/StorageSystemsSimulations.md"],
-    
 )
-
-links = InterLinks(
-    "PowerSystems" => (
-        "https://nrel-sienna.github.io/PowerSystems.jl/stable/",
-        "https://nrel-sienna.github.io/PowerSystems.jl/stable/objects.inv",
-        joinpath(@__DIR__, "inventories", "PowerSystems.toml")
-    ),
-);
 makedocs(;
     modules=[StorageSystemsSimulations],
     format=Documenter.HTML(; prettyurls=haskey(ENV, "GITHUB_ACTIONS")),
-    warnonly=[:missing_docs],
     sitename="StorageSystemsSimulations.jl",
     authors="Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi",
     pages=Any[p for p in pages],
