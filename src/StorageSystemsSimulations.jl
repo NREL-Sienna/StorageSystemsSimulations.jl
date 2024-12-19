@@ -33,6 +33,9 @@ export ReserveChargeConstraint
 export EnergyTargetFeedforward
 export EnergyLimitFeedforward
 
+# parameters
+export EnergyLimitParameter
+
 #################################################################################
 # Modeling Imports
 import JuMP
@@ -53,6 +56,7 @@ import DataStructures: OrderedDict
 const MOI = MathOptInterface
 const PSI = PowerSimulations
 const PSY = PowerSystems
+const PNM = PSI.PNM
 const PM = PSI.PM
 const IS = InfrastructureSystems
 const ISOPT = InfrastructureSystems.Optimization
