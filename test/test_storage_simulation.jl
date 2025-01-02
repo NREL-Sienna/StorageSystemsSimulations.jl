@@ -136,14 +136,14 @@ end
                 template_uc,
                 sys_uc;
                 name="UC",
-                optimizer=GLPK_optimizer,
+                optimizer=HiGHS_optimizer,
                 store_variable_names=true,
             ),
             DecisionModel(
                 template_ed,
                 sys_ed;
                 name="ED",
-                optimizer=GLPK_optimizer,
+                optimizer=HiGHS_optimizer,
                 store_variable_names=true,
             ),
         ],
