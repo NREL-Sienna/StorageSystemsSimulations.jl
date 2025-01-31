@@ -54,7 +54,7 @@ storage_model = DeviceModel(
         "reservation" => true,
         "energy_target" => false,
         "cycling_limits" => false,
-        "regulatization" => true,
+        "regularization" => true,
     ),
 )
 set_device_model!(template_uc, storage_model)

@@ -7,7 +7,8 @@ pages = OrderedDict(
     "Welcome Page" => "index.md",
     "Quick Start Guide" => "quick_start_guide.md",
     "Tutorials" =>
-        Any["tutorials/single_stage_model.md"],
+        Any["Single State Model" => "tutorials/single_stage_model.md",
+            "Simulation Model" => "tutorials/simulation_tutorial.md"],
     "Explanation" => "explanation/stub.md",
     "How-to-Guides" => "how_to/stub.md",
     "Reference" => Any[
@@ -32,3 +33,4 @@ deploydocs(;
     push_preview=true,
     versions=["stable" => "v^", "v#.#"],
 )
+
