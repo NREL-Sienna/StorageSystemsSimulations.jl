@@ -157,8 +157,8 @@ struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
 end
 
 PSI.get_default_parameter_type(::EnergyLimitFeedforward, _) = EnergyLimitParameter
-PSI.get_optimization_container_key(ff) = ff.optimization_container_key
-get_number_of_periods(ff) = ff.number_of_periods
+PSI.get_optimization_container_key(ff::EnergyLimitFeedforward) = ff.optimization_container_key
+get_number_of_periods(ff::EnergyLimitFeedforward) = ff.number_of_periods
 
 @doc raw"""
         add_feedforward_constraints(container::OptimizationContainer,
