@@ -2,7 +2,7 @@
 CollapsedDocStrings = true
 ```
 
-## Internal
+# Internals
 
 ```@autodocs
 Modules = [StorageSystemsSimulations]

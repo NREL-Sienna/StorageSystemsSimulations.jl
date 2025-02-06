@@ -5,8 +5,7 @@ CurrentModule = StorageSystemsSimulations
 ```
 
 ## About
-
-`StorageSystemsSimulations.jl` is a [`PowerSimulations.jl`](https://github.com/NREL-Sienna/PowerSystems.jl) extension to support formulations and models related to energy storage. Operational Storage Models can have multiple combinations of different resitrctions. To manage these variations `StorageSystemsSimulations.jl` relies on the [`DeviceModel`](@extref) attributes feature. Formulations can have varying implementations for different attributes defined in [`DeviceModel`](@extref).
+`StorageSystemsSimulations.jl` is a [`PowerSimulations.jl`](https://github.com/NREL-Sienna/PowerSystems.jl) extension to support formulations and models related to energy storage. Operational Storage Models can have multiple combinations of different resitrctions. To manage these variations `StorageSystemsSimulations.jl` relies on the [PowerSimulations.DeviceModel](@extref) attributes feature. Formulations can have varying implementations for different attributes defined in [PowerSimulations.DeviceModel](@extref).
 
 ## Installation
 
@@ -44,7 +43,7 @@ framework.
 
 If you are new to `StorageSystemsSimulations.jl`, here's how we suggest getting started:
 
- 1. [Install](@ref install)
+ 1. [Installation](@ref)
 
  2. Work through the introductory tutorial: `Tutorial that doesn't exist yet` to familiarize yourself with how `StorageSystemsSimulations.jl` works.
  3. Work through other basic tutorials pertaining to your interest:
