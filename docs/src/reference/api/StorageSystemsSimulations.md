@@ -1,4 +1,4 @@
-# StorageSystemsSimulations
+# Public API
 
 ```@meta
 CurrentModule = StorageSystemsSimulations
@@ -7,11 +7,49 @@ DocTestSetup  = quote
 end
 ```
 
-## Exported
+## [Variables](@id vars)
 
-```@autodocs
-Modules = [StorageSystemsSimulations]
-Private = false
-Filter = t -> typeof(t) === DataType ? !(t <: StorageSystemsSimulations.AbstractStorageFormulation) : true
+```@docs
+AncillaryServiceVariableDischarge
+AncillaryServiceVariableCharge
+StorageEnergyShortageVariable
+StorageEnergySurplusVariable
+StorageChargeCyclingSlackVariable
+StorageDischargeCyclingSlackVariable
+StorageRegularizationVariableCharge
+StorageRegularizationVariableDischarge
 ```
 
+## [Auxiliary Variables](@id aux_vars)
+
+```@docs
+StorageEnergyOutput
+```
+
+## [Constraints](@id cons)
+
+```@docs
+StateofChargeLimitsConstraint
+StorageCyclingCharge
+StorageCyclingDischarge
+ReserveCoverageConstraint
+ReserveCoverageConstraintEndOfPeriod
+ReserveCompleteCoverageConstraint
+ReserveCompleteCoverageConstraintEndOfPeriod
+StorageTotalReserveConstraint
+ReserveDischargeConstraint
+ReserveChargeConstraint
+```
+
+## [Parameters](@id params)
+
+```@docs
+EnergyLimitParameter
+```
+
+## [FeedForwards](@id ffs)
+
+```@docs
+EnergyTargetFeedforward
+EnergyLimitFeedforward
+```

@@ -2,6 +2,12 @@ using Documenter
 using PowerSystems
 using StorageSystemsSimulations
 using DataStructures
+using DocumenterInterLinks
+
+links = InterLinks(
+    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/stable/",
+    "DocumenterInterLinks" => "http://juliadocs.org/DocumenterInterLinks.jl/stable/",
+)
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
@@ -15,6 +21,7 @@ pages = OrderedDict(
         "Developers" => "reference/developers/code_base_developer_guide/developer.md",
         "API" => "reference/api/StorageSystemsSimulations.md"],
 )
+
 makedocs(;
     modules=[StorageSystemsSimulations],
     format=Documenter.HTML(; prettyurls=haskey(ENV, "GITHUB_ACTIONS")),

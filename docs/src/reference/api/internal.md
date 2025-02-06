@@ -1,4 +1,8 @@
-## Internal
+```@meta
+CollapsedDocStrings = true
+```
+
+# Internals
 
 ```@autodocs
 Modules = [StorageSystemsSimulations]
