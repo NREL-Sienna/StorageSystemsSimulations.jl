@@ -1877,3 +1877,229 @@ function PSI.calculate_aux_variable_value!(
 
     return
 end
+
+
+################## Storage Systems with Market Bid Cost ###################
+
+function PSI._add_variable_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    cost_function::PSY.MarketBidCost,
+    ::U,
+) where {T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge}, U <: AbstractStorageFormulation}
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
+    time_steps = PSI.get_time_steps(container)
+    initial_time = PSI.get_initial_time(container)
+    incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
+    decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
+    if !isnothing(incremental_cost_curves)
+        
+        #=
+        variable_cost_forecast = PSY.get_variable_cost(
+            component,
+            op_cost;
+            start_time = initial_time,
+            len = length(time_steps),
+        )
+        variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
+        parameter_container = _get_cost_function_parameter_container(
+            container,
+            CostFunctionParameter(),
+            component,
+            T(),
+            U(),
+            eltype(variable_cost_forecast_values),
+        )
+        =#
+        pwl_cost_expressions =
+            PSI._add_pwl_term!(
+                container,
+                component,
+                cost_function,
+                incremental_cost_curves,
+                T(),
+                U(),
+            )
+        jump_model = PSI.get_jump_model(container)
+        for t in time_steps
+            #=
+            set_multiplier!(
+                parameter_container,
+                # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
+                #  of base power times the time delta.
+                1.0,
+                component_name,
+                t,
+            )
+            set_parameter!(
+                parameter_container,
+                jump_model,
+                variable_cost_forecast_values[t],
+                component_name,
+                t,
+            )
+            =#
+            PSI.add_to_expression!(
+                container,
+                PSI.ProductionCostExpression,
+                pwl_cost_expressions[t],
+                component,
+                t,
+            )
+            PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
+        end
+    end
+
+    # Service Cost Bid
+    #=
+    ancillary_services = PSY.get_ancillary_service_offers(op_cost)
+    for service in ancillary_services
+        _add_service_bid_cost!(container, component, service)
+    end
+    =#
+    return
+end
+
+
+function PSI._add_variable_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    cost_function::PSY.MarketBidCost,
+    ::U,
+) where {T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge}, U <: AbstractStorageFormulation}
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
+    time_steps = PSI.get_time_steps(container)
+    initial_time = PSI.get_initial_time(container)
+    incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
+    decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
+    if !isnothing(decremental_cost_curves)
+        
+        #=
+        variable_cost_forecast = PSY.get_variable_cost(
+            component,
+            op_cost;
+            start_time = initial_time,
+            len = length(time_steps),
+        )
+        variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
+        parameter_container = _get_cost_function_parameter_container(
+            container,
+            CostFunctionParameter(),
+            component,
+            T(),
+            U(),
+            eltype(variable_cost_forecast_values),
+        )
+        =#
+        pwl_cost_expressions =
+            PSI._add_pwl_term_decremental!(
+                container,
+                component,
+                cost_function,
+                decremental_cost_curves,
+                T(),
+                U(),
+            )
+        jump_model = PSI.get_jump_model(container)
+        for t in time_steps
+            #=
+            set_multiplier!(
+                parameter_container,
+                # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
+                #  of base power times the time delta.
+                1.0,
+                component_name,
+                t,
+            )
+            set_parameter!(
+                parameter_container,
+                jump_model,
+                variable_cost_forecast_values[t],
+                component_name,
+                t,
+            )
+            =#
+            PSI.add_to_expression!(
+                container,
+                PSI.ProductionCostExpression,
+                pwl_cost_expressions[t],
+                component,
+                t,
+            )
+            PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
+        end
+    end
+
+    # Service Cost Bid
+    #=
+    ancillary_services = PSY.get_ancillary_service_offers(op_cost)
+    for service in ancillary_services
+        _add_service_bid_cost!(container, component, service)
+    end
+    =#
+    return
+end
+
+
+function PSI._add_vom_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    op_cost::PSY.MarketBidCost,
+    ::U,
+) where {T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge}, U <: AbstractStorageFormulation}
+    incremental_cost_curves = PSY.get_incremental_offer_curves(op_cost)
+    decremental_cost_curves = PSY.get_decremental_offer_curves(op_cost)
+    if !(isnothing(incremental_cost_curves))
+        power_units = PSY.get_power_units(incremental_cost_curves)
+        vom_cost = PSY.get_vom_cost(incremental_cost_curves)
+        multiplier = 1.0 # VOM Cost is always positive
+        cost_term = PSY.get_proportional_term(vom_cost)
+        iszero(cost_term) && return
+        base_power = PSI.get_base_power(container)
+        device_base_power = PSY.get_base_power(component)
+        cost_term_normalized = PSI.get_proportional_cost_per_system_unit(cost_term,
+            power_units,
+            base_power,
+            device_base_power)
+        for t in PSI.get_time_steps(container)
+            exp = PSI._add_proportional_term!(container, T(), d, cost_term_normalized * multiplier,
+                t)
+            PSI.add_to_expression!(container, PSI.ProductionCostExpression, exp, d, t)
+        end
+    end
+    return
+end
+
+
+function PSI._add_vom_cost_to_objective!(container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    op_cost::PSY.MarketBidCost,
+    ::U) where {T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge}, U <: AbstractStorageFormulation}
+    incremental_cost_curves = PSY.get_incremental_offer_curves(op_cost)
+    decremental_cost_curves = PSY.get_decremental_offer_curves(op_cost)
+    if !(isnothing(decremental_cost_curves))
+        power_units = PSY.get_power_units(decremental_cost_curves)
+        vom_cost = PSY.get_vom_cost(decremental_cost_curves)
+        multiplier = 1.0 # VOM Cost is always positive
+        cost_term = PSY.get_proportional_term(vom_cost)
+        iszero(cost_term) && return
+        base_power = PSI.get_base_power(container)
+        device_base_power = PSY.get_base_power(component)
+        cost_term_normalized = PSI.get_proportional_cost_per_system_unit(cost_term,
+            power_units,
+            base_power,
+            device_base_power)
+        for t in PSI.get_time_steps(container)
+            exp = PSI._add_proportional_term!(container, T(), d, cost_term_normalized * multiplier,
+                t)
+            PSI.add_to_expression!(container, PSI.ProductionCostExpression, exp, d, t)
+        end
+    end
+    return
+end
