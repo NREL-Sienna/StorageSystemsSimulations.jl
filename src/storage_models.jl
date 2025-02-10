@@ -1895,24 +1895,6 @@ function PSI._add_variable_cost_to_objective!(
     incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
     decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
     if !isnothing(incremental_cost_curves)
-        
-        #=
-        variable_cost_forecast = PSY.get_variable_cost(
-            component,
-            op_cost;
-            start_time = initial_time,
-            len = length(time_steps),
-        )
-        variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
-        parameter_container = _get_cost_function_parameter_container(
-            container,
-            CostFunctionParameter(),
-            component,
-            T(),
-            U(),
-            eltype(variable_cost_forecast_values),
-        )
-        =#
         pwl_cost_expressions =
             PSI._add_pwl_term!(
                 container,
@@ -1924,23 +1906,6 @@ function PSI._add_variable_cost_to_objective!(
             )
         jump_model = PSI.get_jump_model(container)
         for t in time_steps
-            #=
-            set_multiplier!(
-                parameter_container,
-                # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
-                #  of base power times the time delta.
-                1.0,
-                component_name,
-                t,
-            )
-            set_parameter!(
-                parameter_container,
-                jump_model,
-                variable_cost_forecast_values[t],
-                component_name,
-                t,
-            )
-            =#
             PSI.add_to_expression!(
                 container,
                 PSI.ProductionCostExpression,
@@ -1951,14 +1916,6 @@ function PSI._add_variable_cost_to_objective!(
             PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
         end
     end
-
-    # Service Cost Bid
-    #=
-    ancillary_services = PSY.get_ancillary_service_offers(op_cost)
-    for service in ancillary_services
-        _add_service_bid_cost!(container, component, service)
-    end
-    =#
     return
 end
 
@@ -1977,24 +1934,6 @@ function PSI._add_variable_cost_to_objective!(
     incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
     decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
     if !isnothing(decremental_cost_curves)
-        
-        #=
-        variable_cost_forecast = PSY.get_variable_cost(
-            component,
-            op_cost;
-            start_time = initial_time,
-            len = length(time_steps),
-        )
-        variable_cost_forecast_values = TimeSeries.values(variable_cost_forecast)
-        parameter_container = _get_cost_function_parameter_container(
-            container,
-            CostFunctionParameter(),
-            component,
-            T(),
-            U(),
-            eltype(variable_cost_forecast_values),
-        )
-        =#
         pwl_cost_expressions =
             PSI._add_pwl_term_decremental!(
                 container,
@@ -2006,23 +1945,6 @@ function PSI._add_variable_cost_to_objective!(
             )
         jump_model = PSI.get_jump_model(container)
         for t in time_steps
-            #=
-            set_multiplier!(
-                parameter_container,
-                # Using 1.0 here since we want to reuse the existing code that adds the mulitpler
-                #  of base power times the time delta.
-                1.0,
-                component_name,
-                t,
-            )
-            set_parameter!(
-                parameter_container,
-                jump_model,
-                variable_cost_forecast_values[t],
-                component_name,
-                t,
-            )
-            =#
             PSI.add_to_expression!(
                 container,
                 PSI.ProductionCostExpression,
@@ -2033,14 +1955,6 @@ function PSI._add_variable_cost_to_objective!(
             PSI.add_to_objective_variant_expression!(container, pwl_cost_expressions[t])
         end
     end
-
-    # Service Cost Bid
-    #=
-    ancillary_services = PSY.get_ancillary_service_offers(op_cost)
-    for service in ancillary_services
-        _add_service_bid_cost!(container, component, service)
-    end
-    =#
     return
 end
 
