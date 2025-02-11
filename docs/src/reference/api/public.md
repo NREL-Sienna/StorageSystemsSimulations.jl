@@ -1,4 +1,4 @@
 CurrentModule = StorageSystemsSimulations
 DocTestSetup  = quote
-    using StorageSystemsSimulations
+using StorageSystemsSimulations
 end
