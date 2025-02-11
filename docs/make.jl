@@ -2,24 +2,21 @@ using Documenter
 using PowerSystems
 using StorageSystemsSimulations
 using DataStructures
-using DocumenterInterLinks
-
-links = InterLinks(
-    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/stable/",
-    "DocumenterInterLinks" => "http://juliadocs.org/DocumenterInterLinks.jl/stable/",
-)
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
     "Quick Start Guide" => "quick_start_guide.md",
-    "Tutorials" =>
-        Any["tutorials/single_stage_model.md"],
+    "Tutorials" => Any[
+        "Single State Model" => "tutorials/single_stage_model.md",
+        "Simulation Model" => "tutorials/simulation_tutorial.md",
+    ],
     "Explanation" => "explanation/stub.md",
     "How-to-Guides" => "how_to/stub.md",
     "Reference" => Any[
         "Formulation Library" => "reference/formulation_library/StorageDispatchWithReserves.md",
         "Developers" => "reference/developers/code_base_developer_guide/developer.md",
-        "API" => "reference/api/StorageSystemsSimulations.md"],
+        "API" => "reference/api/StorageSystemsSimulations.md",
+    ],
 )
 
 makedocs(;
