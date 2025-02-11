@@ -4,9 +4,7 @@
 StorageDispatchWithReserves
 ```
 
-```@docs; canonical=false
-makedocs
-```
+
 
 ## Attributes
 
