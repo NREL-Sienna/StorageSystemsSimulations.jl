@@ -1,7 +1,7 @@
 # Public API Reference
 
 ```@autodocs
-Modules = [SiennaTemplate]
+Modules = [StorageSystemsSimulations]
 Public = true
 ```
 
