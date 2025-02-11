@@ -1,4 +1,7 @@
-CurrentModule = StorageSystemsSimulations
-DocTestSetup  = quote
-using StorageSystemsSimulations
-end
+# Public API Reference
+
+```@autodocs
+Modules = [SiennaTemplate]
+Public = true
+```
+
