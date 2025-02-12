@@ -14,7 +14,7 @@
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String, Any}(
+        attributes=Dict{String,Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -95,7 +95,7 @@ end
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String, Any}(
+        attributes=Dict{String,Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -213,4 +213,59 @@ end
     set_device_model!(template, storage_model)
     model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+end
+
+@testset "Test storage with MarketBidCost" begin
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
+    batt = get_component(EnergyReservoirStorage, c_sys5_bat, "Bat")
+    # setting the storage_capacity to a high value so that the state-of-charge
+    # constraints are ineffective resulting in predictable dispatch results.
+    set_storage_capacity!(batt, 99999999.9)
+    set_initial_storage_capacity_level!(batt, 0.5)
+    set_operation_cost!(
+        batt,
+        MarketBidCost(;
+            no_load_cost=0.0,
+            start_up=(hot=3.0, warm=0.0, cold=0.0),
+            shut_down=1.5,
+            incremental_offer_curves=make_market_bid_curve(
+                [0.0, 100.0, 200.0, 300.0, 400.0],
+                [15.0, 20.0, 25.0, 30.0],
+                0.0
+            ),
+            decremental_offer_curves=make_market_bid_curve(
+                [0.0, 100.0, 200.0, 300.0, 400.0],
+                [14.0, 13.0, 12.0, 10.0],
+                0.0
+            )
+        )
+    )
+    template = ProblemTemplate(NetworkModel(CopperPlatePowerModel;
+    duals=[CopperPlateBalanceConstraint],))
+    set_device_model!(template, ThermalStandard, ThermalBasicUnitCommitment)
+    set_device_model!(template, PowerLoad, StaticPowerLoad)
+    set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
+    storage_model = DeviceModel(
+        EnergyReservoirStorage,
+        StorageDispatchWithReserves;
+        attributes=Dict(
+            "reservation" => false,
+            "cycling_limits" => false,
+            "energy_target" => false,
+            "complete_coverage" => false,
+            "regularization" => false,
+        ),
+    )
+    set_device_model!(template, storage_model)
+    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
+    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    @test solve!(model) == PSI.RunStatus.SUCCESSFULLY_FINALIZED
+    results = OptimizationProblemResults(model)
+    p_out_bat = read_variable(results, "ActivePowerOutVariable__EnergyReservoirStorage")
+    p_in_bat = read_variable(results, "ActivePowerInVariable__EnergyReservoirStorage")
+    prices = read_dual(results, "CopperPlateBalanceConstraint__System")
+    @test all(p_in_bat[prices[:,2] .== 1400.0, 2] .<= 100)
+    @test all(100 .< p_in_bat[prices[:,2] .== 1300.0, 2] .<= 200)
+    @test all(p_out_bat[prices[:,2] .== 1500.0, 2] .<= 100)
+    @test all(100 .< p_out_bat[prices[:,2] .== 2000.0, 2] .<= 200)
 end
