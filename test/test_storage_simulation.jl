@@ -14,7 +14,7 @@
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String,Any}(
+        attributes=Dict{String, Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -95,7 +95,7 @@ end
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String,Any}(
+        attributes=Dict{String, Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -231,17 +231,18 @@ end
             incremental_offer_curves=make_market_bid_curve(
                 [0.0, 100.0, 200.0, 300.0, 400.0],
                 [15.0, 20.0, 25.0, 30.0],
-                0.0
+                0.0,
             ),
             decremental_offer_curves=make_market_bid_curve(
                 [0.0, 100.0, 200.0, 300.0, 400.0],
                 [14.0, 13.0, 12.0, 10.0],
-                0.0
-            )
-        )
+                0.0,
+            ),
+        ),
     )
-    template = ProblemTemplate(NetworkModel(CopperPlatePowerModel;
-    duals=[CopperPlateBalanceConstraint],))
+    template = ProblemTemplate(
+        NetworkModel(CopperPlatePowerModel; duals=[CopperPlateBalanceConstraint]),
+    )
     set_device_model!(template, ThermalStandard, ThermalBasicUnitCommitment)
     set_device_model!(template, PowerLoad, StaticPowerLoad)
     set_device_model!(template, RenewableDispatch, RenewableFullDispatch)
@@ -264,8 +265,8 @@ end
     p_out_bat = read_variable(results, "ActivePowerOutVariable__EnergyReservoirStorage")
     p_in_bat = read_variable(results, "ActivePowerInVariable__EnergyReservoirStorage")
     prices = read_dual(results, "CopperPlateBalanceConstraint__System")
-    @test all(p_in_bat[prices[:,2] .== 1400.0, 2] .<= 100)
-    @test all(100 .< p_in_bat[prices[:,2] .== 1300.0, 2] .<= 200)
-    @test all(p_out_bat[prices[:,2] .== 1500.0, 2] .<= 100)
-    @test all(100 .< p_out_bat[prices[:,2] .== 2000.0, 2] .<= 200)
+    @test all(p_in_bat[prices[:, 2] .== 1400.0, 2] .<= 100)
+    @test all(100 .< p_in_bat[prices[:, 2] .== 1300.0, 2] .<= 200)
+    @test all(p_out_bat[prices[:, 2] .== 1500.0, 2] .<= 100)
+    @test all(100 .< p_out_bat[prices[:, 2] .== 2000.0, 2] .<= 200)
 end
