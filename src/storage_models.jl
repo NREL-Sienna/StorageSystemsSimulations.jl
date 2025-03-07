@@ -1890,6 +1890,8 @@ function PSI._add_variable_cost_to_objective!(
     T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge},
     U <: AbstractStorageFormulation,
 }
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = LOG_GROUP_COST_FUNCTIONS component_name
     incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
     if !isnothing(incremental_cost_curves)
         PSI._add_variable_cost_helper!(
@@ -1914,6 +1916,8 @@ function PSI._add_variable_cost_to_objective!(
     T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge},
     U <: AbstractStorageFormulation,
 }
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = LOG_GROUP_COST_FUNCTIONS component_name
     decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
     if !isnothing(decremental_cost_curves)
         PSI._add_variable_cost_helper!(
