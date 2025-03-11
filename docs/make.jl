@@ -15,7 +15,7 @@ pages = OrderedDict(
     "Reference" => Any[
         "Formulation Library" => "reference/formulation_library/StorageDispatchWithReserves.md",
         "Developers" => "reference/developers/code_base_developer_guide/developer.md",
-        "API" => "reference/api/public.md",
+        "API" => "reference/api/StorageSystemsSimulations.md",
     ],
 )
 
@@ -36,3 +36,4 @@ deploydocs(;
     push_preview=true,
     versions=["stable" => "v^", "v#.#"],
 )
+
