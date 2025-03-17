@@ -1899,7 +1899,8 @@ function PSI._add_variable_cost_to_objective!(
             T(),
             component,
             cost_function,
-            PSI.Incremental,
+            incremental_cost_curves,
+            PSI._add_pwl_term!,
             U(),
         )
     end
@@ -1925,7 +1926,8 @@ function PSI._add_variable_cost_to_objective!(
             T(),
             component,
             cost_function,
-            PSI.Decremental,
+            decremental_cost_curves,
+            PSI._add_pwl_term_decremental!,
             U(),
         )
     end
