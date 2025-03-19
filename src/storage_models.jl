@@ -1877,3 +1877,107 @@ function PSI.calculate_aux_variable_value!(
 
     return
 end
+
+################## Storage Systems with Market Bid Cost ###################
+
+function PSI._add_variable_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    cost_function::PSY.MarketBidCost,
+    ::U,
+) where {
+    T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge},
+    U <: AbstractStorageFormulation,
+}
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
+    incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
+    if !isnothing(incremental_cost_curves)
+        PSI._add_variable_cost_helper!(
+            container,
+            T(),
+            component,
+            cost_function,
+            incremental_cost_curves,
+            PSI._add_pwl_term!,
+            U(),
+        )
+    end
+    return
+end
+
+function PSI._add_variable_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    cost_function::PSY.MarketBidCost,
+    ::U,
+) where {
+    T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge},
+    U <: AbstractStorageFormulation,
+}
+    component_name = PSY.get_name(component)
+    @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
+    decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
+    if !isnothing(decremental_cost_curves)
+        PSI._add_variable_cost_helper!(
+            container,
+            T(),
+            component,
+            cost_function,
+            decremental_cost_curves,
+            PSI._add_pwl_term_decremental!,
+            U(),
+        )
+    end
+    return
+end
+
+function PSI._add_vom_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    op_cost::PSY.MarketBidCost,
+    ::U,
+) where {
+    T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge},
+    U <: AbstractStorageFormulation,
+}
+    incremental_cost_curves = PSY.get_incremental_offer_curves(op_cost)
+    if !(isnothing(incremental_cost_curves))
+        PSI._add_vom_cost_to_objective_helper!(
+            container,
+            T(),
+            component,
+            op_cost,
+            incremental_cost_curves,
+            U(),
+        )
+    end
+    return
+end
+
+function PSI._add_vom_cost_to_objective!(
+    container::PSI.OptimizationContainer,
+    ::T,
+    component::PSY.Component,
+    op_cost::PSY.MarketBidCost,
+    ::U,
+) where {
+    T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge},
+    U <: AbstractStorageFormulation,
+}
+    decremental_cost_curves = PSY.get_decremental_offer_curves(op_cost)
+    if !(isnothing(decremental_cost_curves))
+        PSI._add_vom_cost_to_objective_helper!(
+            container,
+            T(),
+            component,
+            op_cost,
+            decremental_cost_curves,
+            U(),
+        )
+    end
+    return
+end
