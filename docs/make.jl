@@ -2,21 +2,31 @@ using Documenter
 using PowerSystems
 using StorageSystemsSimulations
 using DataStructures
+using DocumenterInterLinks
+
+links = InterLinks(
+    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/latest/",
+)
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
-    "Quick Start Guide" => "quick_start_guide.md",
-    "Tutorials" =>
-        Any["tutorials/single_stage_model.md", "tutorials/simulation_tutorial.md"],
-    #"How-to and common uses" => ["how_to/configure_feedforward.md"],
-    #"Introductory Background" => ["background/discretization.md", "background/ancillary_services.md"],
-    "Formulation Library" =>
-        Any["StorageDispatchWithReserves" => "formulation_library/StorageDispatchWithReserves.md",],
-    "Code Base Developer Guide" => [
-        "code_base_developer_guide/developer.md",
-        "code_base_developer_guide/internals.md",
+    "Tutorials" => Any[
+        "Single State Model" => "tutorials/single_stage_model.md",
+        "Simulation Model" => "tutorials/simulation_tutorial.md",
     ],
-    "API Reference" => "api/StorageSystemsSimulations.md",
+    # TODO Add sections here once there is content
+    # "Explanation" => "explanation/stub.md",
+    # "How-to-Guides" => "how_to/stub.md",
+    "Reference" => Any[
+        "Formulation Library" => [
+            "Storage Dispatch with Reserves" => "reference/StorageDispatchWithReserves.md",
+        ],
+        "Public API" => "reference/public.md",
+        "Developers" => [
+            "Developer Guidelines" => "reference/developer_guidelines.md",
+            "Internals" => "reference/internal.md",
+        ],
+    ],
 )
 
 makedocs(;
@@ -25,6 +35,7 @@ makedocs(;
     sitename="StorageSystemsSimulations.jl",
     authors="Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi",
     pages=Any[p for p in pages],
+    plugins=[links],
 )
 
 deploydocs(;

@@ -6,48 +6,36 @@ CurrentModule = StorageSystemsSimulations
 
 ## Overview
 
-`StorageSystemsSimulations.jl` is a `PowerSimulations.jl` extension to support formulations and models
-related to energy storage.
+`StorageSystemsSimulations.jl` is a
+[`PowerSimulations.jl`](https://nrel-sienna.github.io/PowerSimulations.jl/stable/)
+extension to support formulations and models related to energy storage.
 
-An Operational Storage Model can have multiple combinations of different restrictions. For instance,
-it might be relevant to a study to consider cycling limits or employ energy targets coming from a planning model. To manage all these variations `StorageSystemsSimulations.jl` heavily uses the `DeviceModel` attributes feature.
+Operational Storage Models can have multiple combinations of different restrictions.
+To manage these variations, `StorageSystemsSimulations.jl` relies on the
+[`PowerSimulations.DeviceModel`](@extref) attributes feature. Formulations can have varying
+implementations for different attributes defined in [`PowerSimulations.DeviceModel`](@extref).
 
-For example, the formulation `StorageDispatchWithReserves` can be parametrized as follows when added to a `PowerSimulations.jl` model:
+## About Sienna
 
-```julia
-DeviceModel(
-    StorageType, # E.g. EnergyReservoirStorage
-    StorageDispatchWithReserves;
-    attributes=Dict(
-        "reservation" => true,
-        "cycling_limits" => false,
-        "energy_target" => false,
-        "complete_coverage" => false,
-        "regularization" => true,
-    ),
-    use_slacks=false,
-)
-```
+`StorageSystemsSimulations.jl` is part of the National Renewable Energy Laboratory's
+[Sienna ecosystem](https://nrel-sienna.github.io/Sienna/), an open source framework for
+power system modeling, simulation, and optimization. The Sienna ecosystem can be
+[found on Github](https://github.com/NREL-Sienna/Sienna). It contains three applications:
 
-!!! tip
-    
-    Each formulation can have different implementations for attributes. Carefully review the formulation library pages to understand how to configure the storage model according to your requirements
+  - [Sienna\Data](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_data.html) enables
+    efficient data input, analysis, and transformation
+  - [Sienna\Ops](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_ops.html) enables
+    enables system scheduling simulations by formulating and solving optimization problems
+  - [Sienna\Dyn](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_dyn.html) enables
+    system transient analysis including small signal stability and full system dynamic
+    simulations
 
-## Installation
+Each application uses multiple packages in the [`Julia`](http://www.julialang.org)
+programming language. `StorageSystemsSimulations.jl` is part of Sienna\Ops.
 
-The latest stable release of PowerSimulations can be installed using the Julia package manager with
+## Installation and Quick Links
 
-```
-(@v1.10) pkg> add PowerSimulations StorageSystemsSimulations
-```
-
-For the current development version, "checkout" this package with
-
-```
-(@v1.10) pkg> add PowerSimulations StorageSystemsSimulations#main
-```
-
-An appropriate optimization solver is required for running StorageSystemsSimulations models. Refer to [`JuMP.jl` solver's page](https://jump.dev/JuMP.jl/stable/installation/#Install-a-solver) to select the most appropriate for the application of interest.
-
-StorageSystemsSimulations has been developed as part of the Scalable Integrated Infrastructure Planning (SIIP) initiative at the U.S. Department of Energy's National Renewable Energy
-Laboratory ([NREL](https://www.nrel.gov/)).
+  - [Sienna installation page](https://nrel-sienna.github.io/Sienna/SiennaDocs/docs/build/how-to/install/):
+    Instructions to install `StorageSystemsSimulations.jl` and other Sienna\Ops packages
+  - [Sienna Documentation Hub](https://nrel-sienna.github.io/Sienna/SiennaDocs/docs/build/index.html):
+    Links to other Sienna packages' documentation

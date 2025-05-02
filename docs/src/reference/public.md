@@ -7,6 +7,12 @@ DocTestSetup  = quote
 end
 ```
 
+## Formulations
+
+```@docs
+StorageDispatchWithReserves
+```
+
 ## [Variables](@id vars)
 
 ```@docs
