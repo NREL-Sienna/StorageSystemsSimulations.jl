@@ -4,8 +4,6 @@
 StorageDispatchWithReserves
 ```
 
-
-
 ## Attributes
 
   - `"reservation"`: Forces the storage to operate exclusively on charge or discharge mode through the entire operation interval. We recommend setting this to false for models with relatively longer time resolutions (e.g., 1-Hr) since the storage can take simultaneous charge or discharge positions on average over the period.
@@ -21,6 +19,8 @@ StorageDispatchWithReserves
   - `"regularization"`: This attribute smooths the charge/discharge profiles to avoid bang-bang solutions via a penalty on the absolute value of the intra-temporal variations of the charge and discharge power. Solving for optimal storage dispatch can stall in models with large amounts of curtailment or long periods with negative or zero prices due to numerical degeneracy. The regularization term is scaled by the storage device's power limits to normalize the term and avoid additional penalties to larger storage units.
 
 !!! danger
+    
+
 Setting the energy target attribute in combination with [`EnergyTargetFeedforward`](@ref) or [`EnergyLimitFeedforward`](@ref) is not permitted and StorageSystemsSimulations will throw an exception.
 
 ## Mathematical Model
