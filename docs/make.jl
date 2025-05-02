@@ -10,17 +10,22 @@ links = InterLinks(
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
-    "Quick Start Guide" => "quick_start_guide.md",
     "Tutorials" => Any[
         "Single State Model" => "tutorials/single_stage_model.md",
         "Simulation Model" => "tutorials/simulation_tutorial.md",
     ],
-    "Explanation" => "explanation/stub.md",
-    "How-to-Guides" => "how_to/stub.md",
+    # TODO Add sections here once there is content
+    # "Explanation" => "explanation/stub.md",
+    # "How-to-Guides" => "how_to/stub.md",
     "Reference" => Any[
-        "Formulation Library" => "reference/formulation_library/StorageDispatchWithReserves.md",
-        "Developers" => "reference/developers/code_base_developer_guide/developer.md",
-        "API" => "reference/api/StorageSystemsSimulations.md",
+        "Formulation Library" => [
+            "Storage Dispatch with Reserves" => "reference/StorageDispatchWithReserves.md",
+        ],
+        "Public API" => "reference/public.md",
+        "Developers" => [
+            "Developer Guidelines" => "reference/developer_guidelines.md",
+            "Internals" => "reference/internal.md",
+        ],
     ],
 )
 
