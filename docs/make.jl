@@ -4,7 +4,9 @@ using StorageSystemsSimulations
 using DataStructures
 using DocumenterInterLinks
 
-links = InterLinks("PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/latest/")
+links = InterLinks(
+    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/latest/",
+)
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
@@ -28,7 +30,7 @@ makedocs(;
     sitename="StorageSystemsSimulations.jl",
     authors="Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi",
     pages=Any[p for p in pages],
-    plugins = [links]
+    plugins=[links],
 )
 
 deploydocs(;
@@ -40,4 +42,3 @@ deploydocs(;
     push_preview=true,
     versions=["stable" => "v^", "v#.#"],
 )
-
