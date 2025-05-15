@@ -8,6 +8,7 @@ using PowerSimulations
 using PowerSystems
 using JuMP
 using HiGHS
+using GLPK
 using Dates
 
 const IS = InfrastructureSystems
