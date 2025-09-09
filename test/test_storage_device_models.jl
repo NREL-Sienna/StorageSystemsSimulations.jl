@@ -15,6 +15,9 @@
     mock_construct_device!(model, device_model)
     moi_tests(model, 72, 0, 72, 72, 24, false)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 72, 0, 120, 72, 24, false)
 end
 
 @testset "Storage Basic Storage With AC - PF" begin
@@ -34,6 +37,12 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 96, 0, 96, 96, 24, false)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 96, 0, 144, 96, 24, false)
+    # Outage constraint for reactive power is quadratic: 
+    @test JuMP.num_constraints(PSI.get_jump_model(model), GQEVF, MOI.LessThan{Float64}) ==
+          24
 end
 
 @testset "Storage with Reservation  & DC - PF" begin
@@ -43,6 +52,9 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 96, 0, 72, 72, 24, true)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 96, 0, 120, 72, 24, true)
 end
 
 @testset "Storage with Reservation  & AC - PF" begin
@@ -52,6 +64,12 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 120, 0, 96, 96, 24, true)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 120, 0, 144, 96, 24, true)
+    # Outage constraint for reactive power is quadratic: 
+    @test JuMP.num_constraints(PSI.get_jump_model(model), GQEVF, MOI.LessThan{Float64}) ==
+          24
 end
 
 @testset "EnergyReservoirStorage with EnergyTarget with DC - PF" begin
@@ -71,6 +89,9 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 98, 0, 72, 72, 25, true)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 98, 0, 120, 72, 25, true)
 
     device_model = DeviceModel(
         EnergyReservoirStorage,
@@ -87,6 +108,9 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 74, 0, 72, 72, 25, false)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 74, 0, 120, 72, 25, false)
 end
 
 @testset "EnergyReservoirStorage with EnergyTarget With AC - PF" begin
@@ -106,6 +130,9 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 122, 0, 96, 96, 25, true)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 122, 0, 144, 96, 25, true)
 
     device_model = DeviceModel(
         EnergyReservoirStorage,
@@ -123,6 +150,12 @@ end
     mock_construct_device!(model, device_model)
     moi_tests(model, 98, 0, 96, 96, 25, false)
     psi_checkobjfun_test(model, GAEVF)
+    model = DecisionModel(MockOperationProblem, ACPPowerModel, c_sys5_bat)
+    mock_construct_device!(model, device_model; add_event_model=true)
+    moi_tests(model, 98, 0, 144, 96, 25, false)
+    # Outage constraint for reactive power is quadratic: 
+    @test JuMP.num_constraints(PSI.get_jump_model(model), GQEVF, MOI.LessThan{Float64}) ==
+          24
 end
 
 ### Feedforward Test ###
@@ -153,6 +186,14 @@ end
     model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
     mock_construct_device!(model, device_model; built_for_recurrent_solves=true)
     moi_tests(model, 122, 0, 72, 73, 24, true)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
+    mock_construct_device!(
+        model,
+        device_model;
+        built_for_recurrent_solves=true,
+        add_event_model=true,
+    )
+    moi_tests(model, 170, 0, 120, 73, 24, true)
 end
 
 @testset "Test EnergyTargetFeedforward to EnergyReservoirStorage with StorageDispatch model" begin
@@ -181,6 +222,14 @@ end
     model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
     mock_construct_device!(model, device_model; built_for_recurrent_solves=true)
     moi_tests(model, 122, 0, 72, 73, 24, true)
+    model = DecisionModel(MockOperationProblem, DCPPowerModel, sys)
+    mock_construct_device!(
+        model,
+        device_model;
+        built_for_recurrent_solves=true,
+        add_event_model=true,
+    )
+    moi_tests(model, 170, 0, 120, 73, 24, true)
 end
 
 @testset "Test Reserves from Storage" begin
