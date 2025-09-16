@@ -261,6 +261,7 @@ function PSI.construct_device!(
     end
 
     PSI.add_feedforward_arguments!(container, model, devices)
+    PSI.add_event_arguments!(container, devices, model, network_model)
     return
 end
 
@@ -322,6 +323,7 @@ function PSI.construct_device!(
     end
 
     PSI.add_constraint_dual!(container, sys, model)
+    PSI.add_event_constraints!(container, devices, model, network_model)
     PSI.objective_function!(container, devices, model, S)
     return
 end
@@ -350,6 +352,7 @@ function PSI.construct_device!(
     end
 
     PSI.add_feedforward_arguments!(container, model, devices)
+    PSI.add_event_arguments!(container, devices, model, network_model)
     return
 end
 
@@ -440,6 +443,7 @@ function PSI.construct_device!(
     PSI.add_feedforward_constraints!(container, model, devices)
 
     PSI.objective_function!(container, devices, model, S)
+    PSI.add_event_constraints!(container, devices, model, network_model)
     PSI.add_constraint_dual!(container, sys, model)
     return
 end

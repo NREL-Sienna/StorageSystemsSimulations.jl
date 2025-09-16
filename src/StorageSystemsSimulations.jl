@@ -89,5 +89,6 @@ include("core/feedforward.jl")
 # device models
 include("storage_models.jl")
 include("storage_constructor.jl")
+include("contingency_model.jl")
 
 end
