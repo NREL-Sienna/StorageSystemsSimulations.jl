@@ -16,7 +16,7 @@ PowerSimulations = "e690365d-45e2-57bb-ac84-44ba829e73c4"
 PowerSystems = "bcd98974-b02a-5e2f-9ee0-a103f5c450dd"
 
 [compat]
-DataStructures = "~0.19"
+DataStructures = "~0.18, ~0.19"
 Dates = "1"
 DocStringExtensions = "~0.8, ~0.9"
 InfrastructureSystems = "2"
