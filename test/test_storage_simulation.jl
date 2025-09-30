@@ -192,8 +192,7 @@ end
     res_uc = res.decision_problem_results["UC"]
     p_out_bat =
         read_realized_variable(res_uc, "ActivePowerOutVariable__EnergyReservoirStorage")
-
-    @test isapprox(param_ed[!, 2], p_out_bat[!, 2] / 100.0; atol=1e-4)
+    @test isapprox(param_ed[!, :value], p_out_bat[!, :value] ./ 100.0; atol=1e-4)
 end
 
 @testset "Test cost handling" begin

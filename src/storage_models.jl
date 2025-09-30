@@ -1894,15 +1894,7 @@ function PSI._add_variable_cost_to_objective!(
     @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
     incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
     if !isnothing(incremental_cost_curves)
-        PSI._add_variable_cost_helper!(
-            container,
-            T(),
-            component,
-            cost_function,
-            incremental_cost_curves,
-            PSI._add_pwl_term!,
-            U(),
-        )
+        PSI.add_pwl_term!(false, container, component, cost_function, T(), U())
     end
     return
 end
@@ -1921,15 +1913,7 @@ function PSI._add_variable_cost_to_objective!(
     @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
     decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
     if !isnothing(decremental_cost_curves)
-        PSI._add_variable_cost_helper!(
-            container,
-            T(),
-            component,
-            cost_function,
-            decremental_cost_curves,
-            PSI._add_pwl_term_decremental!,
-            U(),
-        )
+        PSI.add_pwl_term!(true, container, component, cost_function, T(), U())
     end
     return
 end
