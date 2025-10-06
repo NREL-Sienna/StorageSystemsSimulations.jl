@@ -10,6 +10,8 @@ using JuMP
 using HiGHS
 using GLPK
 using Dates
+using TimeSeries
+import OrderedCollections: OrderedDict
 
 const IS = InfrastructureSystems
 const PSY = PowerSystems
@@ -37,6 +39,7 @@ LOG_LEVELS = Dict(
 include("test_utils/mock_operation_models.jl")
 include("test_utils/model_checks.jl")
 include("test_utils/operations_problems_templates.jl")
+include("test_utils/market_bid_cost.jl")
 
 HiGHS_optimizer = JuMP.optimizer_with_attributes(
     HiGHS.Optimizer,

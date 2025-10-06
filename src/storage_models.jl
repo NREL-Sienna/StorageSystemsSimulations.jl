@@ -454,6 +454,7 @@ function PSI.add_variables!(
     return
 end
 
+# no test coverage
 function PSI.add_variables!(
     container::PSI.OptimizationContainer,
     ::Type{T},
@@ -1388,6 +1389,7 @@ function PSI.add_constraints!(
     return
 end
 
+# no test coverage
 function add_cycling_charge_without_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1422,6 +1424,7 @@ function add_cycling_charge_without_reserves!(
     return
 end
 
+# no test coverage
 function add_cycling_charge_with_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1459,6 +1462,7 @@ function add_cycling_charge_with_reserves!(
     return
 end
 
+# no test coverage
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{StorageCyclingCharge},
@@ -1474,6 +1478,7 @@ function PSI.add_constraints!(
     return
 end
 
+# no test coverage
 function add_cycling_discharge_without_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1509,6 +1514,7 @@ function add_cycling_discharge_without_reserves!(
     return
 end
 
+# no test coverage
 function add_cycling_discharge_with_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1545,6 +1551,7 @@ function add_cycling_discharge_with_reserves!(
     return
 end
 
+# no test coverage
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{StorageCyclingDischarge},
@@ -1712,6 +1719,7 @@ function PSI.add_constraints!(
 end
 
 ########################### Objective Function and Costs ######################
+# no test coverage
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
@@ -1744,6 +1752,7 @@ function PSI.objective_function!(
     model::PSI.DeviceModel{PSY.EnergyReservoirStorage, T},
     ::Type{V},
 ) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
+    # TODO problem with time varying MBC.
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
     PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, T())
     if PSI.get_attribute(model, "energy_target")
@@ -1781,6 +1790,7 @@ function PSI.objective_function!(
     return
 end
 
+# no test coverage
 function PSI.add_proportional_cost!(
     container::PSI.OptimizationContainer,
     ::T,
@@ -1918,6 +1928,7 @@ function PSI._add_variable_cost_to_objective!(
     return
 end
 
+#=
 function PSI._add_vom_cost_to_objective!(
     container::PSI.OptimizationContainer,
     ::T,
@@ -1930,6 +1941,8 @@ function PSI._add_vom_cost_to_objective!(
 }
     incremental_cost_curves = PSY.get_incremental_offer_curves(op_cost)
     if !(isnothing(incremental_cost_curves))
+        # incremental cost curves here is a time series key, when function expects a CostCurve.
+        # resolve it higher up the call stack, at add_variable_cost!.
         PSI._add_vom_cost_to_objective_helper!(
             container,
             T(),
@@ -1965,3 +1978,75 @@ function PSI._add_vom_cost_to_objective!(
     end
     return
 end
+=#
+
+# copy-paste from PSI's update_cost_parameters.jl, with Storage instead of Gen
+# and Decremental instead of Incremental. Could @eval loop it instead.
+function PSI.handle_variable_cost_parameter(
+    ::PSI.DecrementalCostAtMinParameter,
+    op_cost::PSY.MarketBidCost,
+    component::PSY.Storage,
+    name,
+    parameter_array,
+    parameter_multiplier,
+    attributes,
+    container,
+    initial_forecast_time,
+    horizon,
+)
+    PSI.is_time_variant(PSY.get_cost_at_min(op_cost)) || return
+    ts_vector = PSY.get_cost_at_min(
+        component,
+        op_cost;
+        start_time=initial_forecast_time,
+        len=horizon,
+    )
+    for (t, value) in enumerate(TimeSeries.values(ts_vector))
+        PSI._set_param_value!(parameter_array, value, name, t)
+        PSI.update_variable_cost!(
+            container,
+            parameter_array,
+            parameter_multiplier,
+            attributes,
+            component,
+            t,
+        )
+    end
+    return
+end
+
+function PSI.handle_variable_cost_parameter(
+    ::T,
+    op_cost::PSY.MarketBidCost,
+    component::PSY.Storage,
+    name,
+    parameter_array,
+    parameter_multiplier,
+    attributes,
+    container,
+    initial_forecast_time,
+    horizon,
+) where {T <: PSI.DecrementalPiecewiseLinearSlopeParameter}
+    PSI.is_time_variant(PSY.get_decremental_offer_curves(op_cost)) || return
+    ts_vector = PSY.get_decremental_offer_curves(
+        component,
+        op_cost;
+        start_time=initial_forecast_time,
+        len=horizon,
+    )
+    for (t, value::PSY.PiecewiseStepData) in enumerate(TimeSeries.values(ts_vector))
+        unwrapped_value =
+            PSI._unwrap_for_param(T(), value, PSI.lookup_additional_axes(parameter_array))
+        PSI._set_param_value!(parameter_array, unwrapped_value, name, t)
+        PSI.update_variable_cost!(
+            container,
+            value,  # intentionally passing the PiecewiseStepData here, not the unwrapped
+            parameter_multiplier,
+            attributes,
+            component,
+            t,
+        )
+    end
+    return
+end
+# end copy-paste.
