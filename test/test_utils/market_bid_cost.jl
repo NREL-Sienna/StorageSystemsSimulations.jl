@@ -187,43 +187,78 @@ function extend_mbc!(
     slopes_vary::Bool=false,
     initial_input_names_vary::Bool=false,
     variable_cost_names_vary::Bool=false,
+    zero_cost_at_min::Bool=false,
 )
     @assert !isempty(get_components(active_components, sys)) "No components selected"
     # grab some Deterministic time series, so we know the horizon, count, and interval
     # (this assumes that things are regularly spaced)
     model_ts = get_deterministic_ts(sys)
     for comp in get_components(active_components, sys)
-        # extract the function data from the component
-        # component -> op cost -> cost curve -> value curve -> function data
         op_cost = get_operation_cost(comp)
         @assert op_cost isa MarketBidCost
-        cost_curve = get_incremental_offer_curves(op_cost)::CostCurve
-        baseline = get_value_curve(cost_curve)::PiecewiseIncrementalCurve
-        baseline_initial = get_initial_input(baseline)
-        baseline_pwl = get_function_data(baseline)
-
-        # primes for easier attribution
-        incr_initial = initial_varies ? (0.11, 0.05) : (0.0, 0.0)
-        incr_x = breakpoints_vary ? (0.02, 0.07, 0.03) : (0.0, 0.0, 0.0)
-        incr_y = slopes_vary ? (0.02, 0.07, 0.03) : (0.0, 0.0, 0.0)
-
-        name_modifier = "_$(replace(get_name(comp), " " => "_"))_"
-        # this might have the wrong number of time steps, if system already has time series.
-        my_initial_ts = _make_deterministic_ts(
-            "initial_input" * (initial_input_names_vary ? name_modifier : ""),
-            baseline_initial,
-            incr_initial...,
-            model_ts,
+        for (getter, setter_initial, setter_incremental, incr_or_decr) in (
+            (
+                get_incremental_offer_curves,
+                set_incremental_initial_input!,
+                set_incremental_offer_curves!,
+                "incremental",
+            ),
+            (
+                get_decremental_offer_curves,
+                set_decremental_initial_input!,
+                set_decremental_offer_curves!,
+                "decremental",
+            ),
         )
-        my_pwl_ts = _make_deterministic_ts(
-            "variable_cost" * (variable_cost_names_vary ? name_modifier : ""),
-            baseline_pwl,
-            incr_x,
-            incr_y,
-            model_ts,
-        )
-        set_incremental_initial_input!(sys, comp, my_initial_ts)
-        set_variable_cost!(sys, comp, my_pwl_ts, get_power_units(cost_curve))
+            cost_curve = getter(op_cost)
+            isnothing(cost_curve) && continue
+
+            baseline = get_value_curve(cost_curve)::PiecewiseIncrementalCurve
+            baseline_initial = get_initial_input(baseline)
+            if zero_cost_at_min
+                @show typeof(baseline_initial)
+                baseline_initial = 0.0
+            end
+            baseline_pwl = get_function_data(baseline)
+
+            # primes for easier attribution
+            incr_initial = initial_varies ? (0.11, 0.05) : (0.0, 0.0)
+            incr_x = breakpoints_vary ? (0.02, 0.07, 0.03) : (0.0, 0.0, 0.0)
+            incr_y = slopes_vary ? (0.02, 0.07, 0.03) : (0.0, 0.0, 0.0)
+
+            name_modifier = "_$(replace(get_name(comp), " " => "_"))_"
+            # this might have the wrong number of time steps, if system already has time series.
+            initial_name =
+                "initial_input $(incr_or_decr)" *
+                (initial_input_names_vary ? name_modifier : "")
+            my_initial_ts = _make_deterministic_ts(
+                initial_name,
+                baseline_initial,
+                incr_initial...,
+                model_ts,
+            )
+            variable_name =
+                "variable_cost $(incr_or_decr)" *
+                (variable_cost_names_vary ? name_modifier : "")
+            my_pwl_ts = _make_deterministic_ts(
+                variable_name,
+                baseline_pwl,
+                incr_x,
+                incr_y,
+                model_ts,
+            )
+            add_time_series!(sys, comp, my_initial_ts)
+            add_time_series!(sys, comp, my_pwl_ts)
+            for key in get_time_series_keys(comp)
+                ts = get_time_series(comp, key)
+                name = get_name(ts)
+                if name == initial_name
+                    setter_initial(op_cost, key)
+                elseif name == variable_name
+                    setter_incremental(op_cost, key)
+                end
+            end
+        end
     end
 end
 

@@ -48,7 +48,6 @@ function run_generic_mbc_sim(sys::System; in_memory_store::Bool=false)
         initial_time=TIME1,
         simulation_folder=mktempdir(),
     )
-
     build!(sim; serialize=false)
     execute!(sim; enable_progress_bar=true, in_memory=in_memory_store)
 
@@ -171,11 +170,20 @@ end
 
 @testset "storage MBC time series" begin
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
-    resample_timeseries!(c_sys5_bat, Hour(1), 5) # 5 hour horizon, 1 hour interval
     storage1 = PSY.get_component(PSY.Storage, c_sys5_bat, "Bat")
     selector = make_selector(PSY.Storage, "Bat")
 
     add_mbc!(c_sys5_bat, selector; decremental=true)
-    extend_mbc!(c_sys5_bat, selector)
-    run_generic_mbc_sim(c_sys5_bat)
+    @assert typeof(get_operation_cost(storage1)) == MarketBidCost
+    @assert !isnothing(get_incremental_offer_curves(get_operation_cost(storage1)))
+    @assert !isnothing(get_decremental_offer_curves(get_operation_cost(storage1)))
+    extend_mbc!(c_sys5_bat, selector; zero_cost_at_min=true)
+    @assert typeof(get_incremental_offer_curves(get_operation_cost(storage1))) <:
+            TimeSeriesKey
+    @assert typeof(get_decremental_offer_curves(get_operation_cost(storage1))) <:
+            TimeSeriesKey
+    _, res = run_generic_mbc_sim(c_sys5_bat)
 end
+
+# how to test...
+# 
