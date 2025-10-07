@@ -227,7 +227,11 @@ function extend_mbc!(
     end
 end
 
-function add_mbc!(sys::PSY.System, active_components::ComponentSelector)
+function add_mbc!(
+    sys::PSY.System,
+    active_components::ComponentSelector;
+    decremental::Bool=false,
+)
     incr_slopes = [0.3, 0.5, 0.7]
     x_coords = [0.1, 0.3, 0.6, 1.0]
     val_at_zero = 0.1
@@ -235,12 +239,26 @@ function add_mbc!(sys::PSY.System, active_components::ComponentSelector)
     incr_curve = CostCurve(
         PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, incr_slopes),
     )
-    mbc = MarketBidCost(;
-        no_load_cost=0.0,
-        start_up=(hot=0.0, warm=0.0, cold=0.0),
-        shut_down=0.0,
-        incremental_offer_curves=incr_curve,
-    )
+    if decremental
+        decr_slopes = [0.13, 0.11, 0.09] # should these actually be negative?
+        decr_curve = CostCurve(
+            PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, decr_slopes),
+        )
+        mbc = MarketBidCost(;
+            no_load_cost=0.0,
+            start_up=(hot=0.0, warm=0.0, cold=0.0),
+            shut_down=0.0,
+            incremental_offer_curves=incr_curve,
+            decremental_offer_curves=decr_curve,
+        )
+    else
+        mbc = MarketBidCost(;
+            no_load_cost=0.0,
+            start_up=(hot=0.0, warm=0.0, cold=0.0),
+            shut_down=0.0,
+            incremental_offer_curves=incr_curve,
+        )
+    end
     for comp in get_components(active_components, sys)
         set_operation_cost!(comp, mbc)
     end

@@ -133,18 +133,17 @@ end
 
 @testset "concavity check errors" begin
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
-    # attach MBC to the storage, via
-    # PiecewiseStepData -> PiecewiseIncrementalCurve -> CostCurves -> MarketBidCost
-    # resample_timeseries!(c_sys5_bat, Hour(1), 5) # 5 hour horizon, 1 hour interval
     incr_slopes = [0.3, 0.5, 0.7]
     non_incr_slopes = [0.3, 0.5, 0.4]
-    decr_slopes = [0.13, 0.11, 0.09] # should these actually be negative?
-    non_decr_slopes = [0.13, 0.11, 0.12] # should these actually be negative?
+    decr_slopes = [0.13, 0.11, 0.09]
+    non_decr_slopes = [0.13, 0.11, 0.12]
     x_coords = [0.1, 0.3, 0.6, 1.0]
     val_at_zero = 0.1
     initial_input = 0.2
-    for (incr_data, decr_data) in
-        [(incr_slopes, non_decr_slopes), (non_incr_slopes, decr_slopes)]
+    for (incr_data, decr_data, msg_info) in [
+        (incr_slopes, non_decr_slopes, ("Decremental", "concave")),
+        (non_incr_slopes, decr_slopes, ("Incremental", "convex")),
+    ]
         incr_curve = CostCurve(
             PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, incr_data),
         )
@@ -163,50 +162,20 @@ end
         model = build_generic_mbc_model(c_sys5_bat)
         mkpath(test_path)
         PSI.set_output_dir!(model, test_path)
-        if incr_data == incr_slopes
-            @test_throws "ArgumentError: Decremental MarketBidCost for component Bat is non-concave" PSI.build_impl!(
-                model,
-            )
-        else
-            @test_throws "ArgumentError: Incremental MarketBidCost for component Bat is non-convex" PSI.build_impl!(
-                model,
-            )
-        end
+        msg =
+            "ArgumentError: $(msg_info[1]) MarketBidCost for component " *
+            "Bat is non-$(msg_info[2])"
+        @test_throws msg PSI.build_impl!(model)
     end
 end
 
 @testset "storage MBC time series" begin
     c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat")
-    # attach MBC to the storage, via
-    # PiecewiseStepData -> PiecewiseIncrementalCurve -> CostCurves -> MarketBidCost
-    # resample_timeseries!(c_sys5_bat, Hour(1), 5) # 5 hour horizon, 1 hour interval
-    incr_slopes = [0.3, 0.5, 0.7]
-    decr_slopes = [0.13, 0.11, 0.09] # should these actually be negative?
-    x_coords = [0.1, 0.3, 0.6, 1.0]
-    val_at_zero = 0.1
-    initial_input = 0.2
-    incr_curve = CostCurve(
-        PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, incr_slopes),
-    )
-    decr_curve = CostCurve(
-        PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, decr_slopes),
-    )
-    mbc = MarketBidCost(;
-        no_load_cost=0.0,
-        start_up=(hot=0.0, warm=0.0, cold=0.0),
-        shut_down=0.0,
-        incremental_offer_curves=incr_curve,
-        decremental_offer_curves=decr_curve,
-    )
+    resample_timeseries!(c_sys5_bat, Hour(1), 5) # 5 hour horizon, 1 hour interval
     storage1 = PSY.get_component(PSY.Storage, c_sys5_bat, "Bat")
-    PSY.set_operation_cost!(storage1, mbc)
     selector = make_selector(PSY.Storage, "Bat")
 
+    add_mbc!(c_sys5_bat, selector; decremental=true)
     extend_mbc!(c_sys5_bat, selector)
-
-    # incremental cost curves here is a time series key, when _add_vom_cost_to_objective! expects a CostCurve.
-    # resolve it higher up the call stack, at add_variable_cost!: look at PSI's
-    # handle_variable_cost_parameter
-
     run_generic_mbc_sim(c_sys5_bat)
 end
