@@ -84,6 +84,8 @@ PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerInVariable, ::PSY.Stor
 
 PSI.get_parameter_multiplier(::EnergyTargetParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 PSI.get_parameter_multiplier(::EnergyLimitParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
+PSI.get_parameter_multiplier(::PSI.LowerBoundValueParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
+PSI.get_parameter_multiplier(::PSI.UpperBoundValueParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 
 ############## ReservationVariable, Storage ####################
 PSI.get_variable_binary(::StorageRegularizationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
