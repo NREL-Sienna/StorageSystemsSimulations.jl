@@ -1,13 +1,12 @@
 name = "StorageSystemsSimulations"
 uuid = "e2f1a126-19d0-4674-9252-42b2384f8e3c"
 authors = ["Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi"]
-version = "0.12.0"
+version = "0.13.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-HDF5_jll = "0234f1f7-429e-5d53-9886-15a909be8d59"
 InfrastructureSystems = "2cd47ed4-ca9b-11e9-27f2-ab636a7671f1"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -16,14 +15,13 @@ PowerSimulations = "e690365d-45e2-57bb-ac84-44ba829e73c4"
 PowerSystems = "bcd98974-b02a-5e2f-9ee0-a103f5c450dd"
 
 [compat]
-DataStructures = "~0.18"
+DataStructures = "~0.18, ~0.19"
 Dates = "1"
 DocStringExtensions = "~0.8, ~0.9"
-InfrastructureSystems = "2"
+InfrastructureSystems = "3"
 JuMP = "1"
 LinearAlgebra = "1"
 MathOptInterface = "1"
-PowerSimulations = "^0.30"
-PowerSystems = "4"
+PowerSimulations = "0.31 - 0"
+PowerSystems = "5"
 julia = "^1.10"
-HDF5_jll = "^1.14.5"

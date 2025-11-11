@@ -259,8 +259,10 @@ function PSI.construct_device!(
     if PSI.has_service_model(model)
         _add_ancillary_services!(container, devices, stage, model, network_model)
     end
+    PSI.process_market_bid_parameters!(container, devices, model, true, true)
 
     PSI.add_feedforward_arguments!(container, model, devices)
+    PSI.add_event_arguments!(container, devices, model, network_model)
     return
 end
 
@@ -322,6 +324,7 @@ function PSI.construct_device!(
     end
 
     PSI.add_constraint_dual!(container, sys, model)
+    PSI.add_event_constraints!(container, devices, model, network_model)
     PSI.objective_function!(container, devices, model, S)
     return
 end
@@ -349,7 +352,10 @@ function PSI.construct_device!(
         _add_ancillary_services!(container, devices, stage, model, network_model)
     end
 
+    PSI.process_market_bid_parameters!(container, devices, model, true, true)
+
     PSI.add_feedforward_arguments!(container, model, devices)
+    PSI.add_event_arguments!(container, devices, model, network_model)
     return
 end
 
@@ -439,7 +445,9 @@ function PSI.construct_device!(
 
     PSI.add_feedforward_constraints!(container, model, devices)
 
+    # TODO issue with time varying MBC.
     PSI.objective_function!(container, devices, model, S)
+    PSI.add_event_constraints!(container, devices, model, network_model)
     PSI.add_constraint_dual!(container, sys, model)
     return
 end

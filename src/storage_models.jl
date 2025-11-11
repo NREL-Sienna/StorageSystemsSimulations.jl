@@ -84,6 +84,8 @@ PSI.variable_cost(cost::PSY.StorageCost, ::PSI.ActivePowerInVariable, ::PSY.Stor
 
 PSI.get_parameter_multiplier(::EnergyTargetParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 PSI.get_parameter_multiplier(::EnergyLimitParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
+PSI.get_parameter_multiplier(::PSI.LowerBoundValueParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
+PSI.get_parameter_multiplier(::PSI.UpperBoundValueParameter, ::PSY.Storage, ::AbstractStorageFormulation) = 1.0
 
 ############## ReservationVariable, Storage ####################
 PSI.get_variable_binary(::StorageRegularizationVariable, ::Type{<:PSY.Storage}, ::AbstractStorageFormulation) = false
@@ -454,6 +456,7 @@ function PSI.add_variables!(
     return
 end
 
+# no test coverage
 function PSI.add_variables!(
     container::PSI.OptimizationContainer,
     ::Type{T},
@@ -636,12 +639,12 @@ function PSI.add_to_expression!(
     variable = PSI.get_variable(container, U(), V)
     area_expr = PSI.get_expression(container, T(), PSY.Area)
     nodal_expr = PSI.get_expression(container, T(), PSY.ACBus)
-    radial_network_reduction = PSI.get_radial_network_reduction(network_model)
+    network_reduction = PSI.get_network_reduction(network_model)
     for d in devices
         name = PSY.get_name(d)
         device_bus = PSY.get_bus(d)
         area_name = PSY.get_name(PSY.get_area(device_bus))
-        bus_no = PNM.get_mapped_bus_number(radial_network_reduction, device_bus)
+        bus_no = PNM.get_mapped_bus_number(network_reduction, device_bus)
         for t in PSI.get_time_steps(container)
             PSI._add_to_jump_expression!(
                 area_expr[area_name, t],
@@ -1388,6 +1391,7 @@ function PSI.add_constraints!(
     return
 end
 
+# no test coverage
 function add_cycling_charge_without_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1422,6 +1426,7 @@ function add_cycling_charge_without_reserves!(
     return
 end
 
+# no test coverage
 function add_cycling_charge_with_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1459,6 +1464,7 @@ function add_cycling_charge_with_reserves!(
     return
 end
 
+# no test coverage
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{StorageCyclingCharge},
@@ -1474,6 +1480,7 @@ function PSI.add_constraints!(
     return
 end
 
+# no test coverage
 function add_cycling_discharge_without_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1509,6 +1516,7 @@ function add_cycling_discharge_without_reserves!(
     return
 end
 
+# no test coverage
 function add_cycling_discharge_with_reserves!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{V},
@@ -1545,6 +1553,7 @@ function add_cycling_discharge_with_reserves!(
     return
 end
 
+# no test coverage
 function PSI.add_constraints!(
     container::PSI.OptimizationContainer,
     ::Type{StorageCyclingDischarge},
@@ -1712,6 +1721,7 @@ function PSI.add_constraints!(
 end
 
 ########################### Objective Function and Costs ######################
+# no test coverage
 function PSI.objective_function!(
     container::PSI.OptimizationContainer,
     devices::IS.FlattenIteratorWrapper{T},
@@ -1744,6 +1754,7 @@ function PSI.objective_function!(
     model::PSI.DeviceModel{PSY.EnergyReservoirStorage, T},
     ::Type{V},
 ) where {T <: AbstractStorageFormulation, V <: PM.AbstractPowerModel}
+    # TODO problem with time varying MBC.
     PSI.add_variable_cost!(container, PSI.ActivePowerOutVariable(), devices, T())
     PSI.add_variable_cost!(container, PSI.ActivePowerInVariable(), devices, T())
     if PSI.get_attribute(model, "energy_target")
@@ -1781,6 +1792,7 @@ function PSI.objective_function!(
     return
 end
 
+# no test coverage
 function PSI.add_proportional_cost!(
     container::PSI.OptimizationContainer,
     ::T,
@@ -1894,15 +1906,7 @@ function PSI._add_variable_cost_to_objective!(
     @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
     incremental_cost_curves = PSY.get_incremental_offer_curves(cost_function)
     if !isnothing(incremental_cost_curves)
-        PSI._add_variable_cost_helper!(
-            container,
-            T(),
-            component,
-            cost_function,
-            incremental_cost_curves,
-            PSI._add_pwl_term!,
-            U(),
-        )
+        PSI.add_pwl_term!(false, container, component, cost_function, T(), U())
     end
     return
 end
@@ -1921,63 +1925,7 @@ function PSI._add_variable_cost_to_objective!(
     @debug "Market Bid" _group = PSI.LOG_GROUP_COST_FUNCTIONS component_name
     decremental_cost_curves = PSY.get_decremental_offer_curves(cost_function)
     if !isnothing(decremental_cost_curves)
-        PSI._add_variable_cost_helper!(
-            container,
-            T(),
-            component,
-            cost_function,
-            decremental_cost_curves,
-            PSI._add_pwl_term_decremental!,
-            U(),
-        )
-    end
-    return
-end
-
-function PSI._add_vom_cost_to_objective!(
-    container::PSI.OptimizationContainer,
-    ::T,
-    component::PSY.Component,
-    op_cost::PSY.MarketBidCost,
-    ::U,
-) where {
-    T <: Union{PSI.ActivePowerOutVariable, StorageRegularizationVariableDischarge},
-    U <: AbstractStorageFormulation,
-}
-    incremental_cost_curves = PSY.get_incremental_offer_curves(op_cost)
-    if !(isnothing(incremental_cost_curves))
-        PSI._add_vom_cost_to_objective_helper!(
-            container,
-            T(),
-            component,
-            op_cost,
-            incremental_cost_curves,
-            U(),
-        )
-    end
-    return
-end
-
-function PSI._add_vom_cost_to_objective!(
-    container::PSI.OptimizationContainer,
-    ::T,
-    component::PSY.Component,
-    op_cost::PSY.MarketBidCost,
-    ::U,
-) where {
-    T <: Union{PSI.ActivePowerInVariable, StorageRegularizationVariableCharge},
-    U <: AbstractStorageFormulation,
-}
-    decremental_cost_curves = PSY.get_decremental_offer_curves(op_cost)
-    if !(isnothing(decremental_cost_curves))
-        PSI._add_vom_cost_to_objective_helper!(
-            container,
-            T(),
-            component,
-            op_cost,
-            decremental_cost_curves,
-            U(),
-        )
+        PSI.add_pwl_term!(true, container, component, cost_function, T(), U())
     end
     return
 end
