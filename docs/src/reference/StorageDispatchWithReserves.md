@@ -22,13 +22,14 @@ This is the full mathematical model underlying the
 \begin{align*}
     &P^{max,ch}_{st} &\text{Max Charge Power Storage [MW]}\\
     &P^{max,ds}_{st} &\text{Max Discharge Power Storage [MW]}\\
-    &\eta^{ch}_{st} &\text{Charge Efficiency Storage [\%/hr]}\\
-    &\eta^{ds}_{st} &\text{Discharge Efficiency Storage [\%/hr]}\\
-    &R^{*}_{p, t} &\text{Ancillary Service deployment Forecast at time $t$ for service $p \in \mathcal{P}^{\text{as}}$ [\$/MW]}\\
+    &\eta^{ch}_{st} &\text{Charge Efficiency Storage (dimensionless, $0 < \eta \leq 1$)}\\
+    &\eta^{ds}_{st} &\text{Discharge Efficiency Storage (dimensionless, $0 < \eta \leq 1$)}\\
+    &R^{*}_{p, t} &\text{Ancillary Service deployment fraction at time $t$ for service $p \in \mathcal{P}^{\text{as}}$ (dimensionless)}\\
     &E^{max}_{st} &\text{Max Energy Storage Capacity [MWh]}\\
+    &E^{min}_{st} &\text{Min Energy Storage Capacity [MWh]}\\
     &E^{st}_{0} &\text{Storage initial energy [MWh]}\\
     &E^{st}_{T} &\text{Storage Energy Target at the end of the horizon, i.e., time-step $T$ [MWh]}\\
-    &\Delta t  &\text{Timestep length}\\
+    &\Delta t  &\text{Timestep length [hours]}\\
     &C_{st} & \text{Maximum number of cycles over the horizon.} \\
     && \text{For DA the value is fixed to 3 and in RT the value depends on the DA allocation of cycles} \\
     &N_{p} & \text{Number of periods of compliance to supply an AS.}\\
@@ -69,13 +70,23 @@ This is the full mathematical model underlying the
 
 ## Model
 
+### Objective Function
+
 ```math
 \begin{align*}
-\min_{\substack{\boldsymbol{p}^{st, ch}, \boldsymbol{p}^{st, ds}, \boldsymbol{e}^{st}, \\ e^{st+}, e^{st-}, c^{ch-} + c^{ds-}}}
-& \rho^{e+} e^{st+} + \rho^{e-} e^{st-} + \rho^{c} \left(c^{ch-} + c^{ds-} \right) + \rho^{z} \left(\frac{z^{ch}}{P^{max,ch}_{st}} + \frac{z^{ds}}{P^{max,ds}_{st}} \right)\\
+\min_{\substack{\boldsymbol{p}^{st, ch}, \boldsymbol{p}^{st, ds}, \boldsymbol{e}^{st}, \\ e^{st+}, e^{st-}, c^{ch-}, c^{ds-}, \boldsymbol{z}^{ch}, \boldsymbol{z}^{ds}}}
+& \rho^{e+} e^{st+} + \rho^{e-} e^{st-} + \rho^{c} \left(c^{ch-} + c^{ds-} \right) + \rho^{z} \sum_{t \in \mathcal{T}} \left(\frac{z^{st,ch}_{t}}{P^{max,ch}_{st}} + \frac{z^{st,ds}_{t}}{P^{max,ds}_{st}} \right)\\
 & +\Delta t \sum_{t \in \mathcal{T}} \text{VOM}_{st} \left ( \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{stc,p,t} + p^{st,ch}_{t} \right) + \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t}\right) \right) &
 \end{align*}
 ```
+
+The objective function minimizes operating costs, including:
+- **Energy target penalties**: Penalize deviations from end-of-horizon energy targets (when `"energy_target" => true`)
+- **Cycling limit penalties**: Penalize exceeding cycle limits (when `"cycling_limits" => true`)
+- **Regularization penalties**: Smooth charge/discharge profiles to avoid bang-bang solutions (when `"regularization" => true`)
+- **Variable O&M costs**: Operational costs proportional to energy throughput
+
+### Constraints
 
 ```math
 \begin{align*}
@@ -118,7 +129,7 @@ This is the full mathematical model underlying the
 & \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{stc,p,t-1} + p^{st,ch}_{t-1}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{stc,p,t-1}\right) &\\
 & - \left(\sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{stc,p,t} + p^{st,ch}_{t}  - \sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{stc,p,t}\right) \ge -z^{st, ch}_{t} & \forall t \in \mathcal{T} \setminus 1\\
 &\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{std,p,t-1} + p^{st,ds}_{t-1} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{std,p,t-1}\right) &\\
-&-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t-1} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \le z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1\\
+&-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \le z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1\\
 &\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t-1} sb_{std,p,t-1} + p^{st,ds}_{t-1} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t-1} sb_{std,p,t-1}\right) &\\
 &-\left(\sum_{p \in \mathcal{P}^{\text{as}_\text{up}}} R^*_{p,t} sb_{std,p,t} + p^{st,ds}_{t} - \sum_{p \in \mathcal{P}^{\text{as}_\text{dn}}} R^*_{p,t} sb_{std,p,t}\right) \ge -z^{st, ds}_{t}  & \forall t \in \mathcal{T} \setminus 1
 \end{align*}

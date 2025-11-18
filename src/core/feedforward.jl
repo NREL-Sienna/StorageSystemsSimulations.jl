@@ -1,5 +1,51 @@
 """
-Adds a constraint to enforce a minimum energy level target with a slack variable associated witha penalty term.
+    EnergyTargetFeedforward
+
+Adds a constraint to enforce a minimum energy level target with a slack variable and associated penalty term.
+
+This feedforward is used to pass energy targets from a higher-level model (e.g., day-ahead) to a lower-level
+model (e.g., real-time). The target is enforced as a soft constraint with a penalty for violations.
+
+# Fields
+- `optimization_container_key`: Key identifying the source variable (typically `EnergyVariable`)
+- `affected_values`: Variables affected by this feedforward
+- `target_period`: Time step in the affected model at which the target should be achieved
+- `penalty_cost`: Cost (\\$/MWh) for deviations below the target
+
+# Constructor Arguments
+- `component_type::Type{<:PSY.Component}`: Type of storage component (e.g., `EnergyReservoirStorage`)
+- `source::Type{T}`: Source variable type (e.g., `EnergyVariable`)
+- `affected_values::Vector{DataType}`: Vector of affected variable types
+- `target_period::Int`: Which time step to apply the target
+- `penalty_cost::Float64`: Penalty for missing target
+- `meta`: Optional metadata string
+
+# Example
+```julia
+EnergyTargetFeedforward(
+    component_type = EnergyReservoirStorage,
+    source = EnergyVariable,
+    affected_values = [EnergyVariable],
+    target_period = 12,  # Target at period 12 of the affected model
+    penalty_cost = 1e5,  # High penalty for missing target
+)
+```
+
+# Constraint Added
+
+The feedforward adds the following constraint to the affected model:
+
+```math
+e^{st}_{\\text{target\\_period}} + \\text{slack} \\geq E^{\\text{target}}
+```
+
+where ``E^{\\text{target}}`` comes from the source model's energy variable.
+
+!!! warning
+    This feedforward cannot be combined with the `"energy_target" => true` attribute
+    in [`StorageDispatchWithReserves`](@ref), as both add energy target constraints.
+
+See also: [`EnergyLimitFeedforward`](@ref), [Simulation Tutorial](@ref sim_tutorial)
 """
 struct EnergyTargetFeedforward <: PSI.AbstractAffectFeedforward
     optimization_container_key::PSI.OptimizationContainerKey
@@ -124,7 +170,54 @@ function PSI.add_feedforward_constraints!(
 end
 
 """
-Adds a constraint to limit the sum of a variable over the number of periods to the source value
+    EnergyLimitFeedforward
+
+Adds a constraint to limit the sum of a variable over a specified number of periods to the source value.
+
+This feedforward is used to pass energy limits from a higher-level model (e.g., day-ahead) to a lower-level
+model (e.g., real-time). It constrains the total energy over chunks of time periods to not exceed the
+scheduled amount from the source model.
+
+# Fields
+- `optimization_container_key`: Key identifying the source variable (e.g., `StorageEnergyOutput`)
+- `affected_values`: Variables affected by this feedforward
+- `number_of_periods`: Number of consecutive time steps to sum over
+
+# Constructor Arguments
+- `component_type::Type{<:PSY.Component}`: Type of storage component (e.g., `EnergyReservoirStorage`)
+- `source::Type{T}`: Source variable type (e.g., `StorageEnergyOutput`)
+- `affected_values::Vector{DataType}`: Vector of affected variable types (e.g., `[ActivePowerOutVariable]`)
+- `number_of_periods::Int`: Number of periods to sum over in each constraint
+- `meta`: Optional metadata string
+
+# Example
+```julia
+EnergyLimitFeedforward(
+    component_type = EnergyReservoirStorage,
+    source = StorageEnergyOutput,
+    affected_values = [ActivePowerOutVariable],
+    number_of_periods = 12,  # Sum over 12 periods (e.g., 1 hour with 5-min resolution)
+)
+```
+
+# Constraint Added
+
+The feedforward adds the following constraint for each chunk of periods:
+
+```math
+\\sum_{t \\in \\text{chunk}} p^{st,ds}_t \\leq \\sum_{t \\in \\text{chunk}} E^{\\text{limit}}_t
+```
+
+where ``E^{\\text{limit}}`` comes from the source model (typically the `StorageEnergyOutput` auxiliary variable).
+
+# Use Cases
+
+This feedforward is useful when:
+- You want to limit total discharge (or charge) energy to match the DA schedule
+- You're coordinating cycling limits between DA and RT
+- You need to ensure the RT model doesn't exceed the DA energy allocation
+
+See also: [`EnergyTargetFeedforward`](@ref), [`StorageEnergyOutput`](@ref), [Simulation Tutorial](@ref sim_tutorial)
 """
 struct EnergyLimitFeedforward <: PSI.AbstractAffectFeedforward
     optimization_container_key::PSI.OptimizationContainerKey

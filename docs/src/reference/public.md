@@ -36,6 +36,7 @@ StorageEnergyOutput
 
 ```@docs
 StateofChargeLimitsConstraint
+StateofChargeTargetConstraint
 StorageCyclingCharge
 StorageCyclingDischarge
 ReserveCoverageConstraint
@@ -45,6 +46,8 @@ ReserveCompleteCoverageConstraintEndOfPeriod
 StorageTotalReserveConstraint
 ReserveDischargeConstraint
 ReserveChargeConstraint
+StorageRegularizationConstraintCharge
+StorageRegularizationConstraintDischarge
 ```
 
 ## [Parameters](@id params)
