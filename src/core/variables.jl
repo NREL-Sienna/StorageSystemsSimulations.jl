@@ -55,14 +55,20 @@ Abstract used for StorageRegularization variables
 abstract type StorageRegularizationVariable <: PSI.VariableType end
 
 """
-Slack variable for energy storage levels > target storage levels
+Regularization variable for storage charging to smooth charge profiles.
+
+Used when `"regularization" => true` to avoid bang-bang solutions by penalizing
+large intra-temporal variations in charging power.
 
 Docs nomenclature: ``z^{st, ch}``
 """
 struct StorageRegularizationVariableCharge <: StorageRegularizationVariable end
 
 """
-Slack variable for energy storage levels > target storage levels
+Regularization variable for storage discharging to smooth discharge profiles.
+
+Used when `"regularization" => true` to avoid bang-bang solutions by penalizing
+large intra-temporal variations in discharging power.
 
 Docs abbreviation: ``z^{st, ds}``
 """
