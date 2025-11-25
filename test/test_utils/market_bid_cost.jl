@@ -216,7 +216,6 @@ function extend_mbc!(
             baseline = get_value_curve(cost_curve)::PiecewiseIncrementalCurve
             baseline_initial = get_initial_input(baseline)
             if zero_cost_at_min
-                @show typeof(baseline_initial)
                 baseline_initial = 0.0
             end
             baseline_pwl = get_function_data(baseline)
