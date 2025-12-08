@@ -94,6 +94,17 @@ PSI.get_variable_lower_bound(::StorageRegularizationVariable, d::PSY.Storage, ::
 
 #! format: on
 
+PSI._include_min_gen_power_in_constraint(
+    ::PSY.EnergyReservoirStorage,
+    ::PSI.ActivePowerOutVariable,
+    ::AbstractStorageFormulation,
+) = false
+PSI._include_min_gen_power_in_constraint(
+    ::PSY.EnergyReservoirStorage,
+    ::PSI.ActivePowerInVariable,
+    ::AbstractStorageFormulation,
+) = false
+
 function PSI.variable_cost(
     cost::PSY.StorageCost,
     ::StorageRegularizationVariable,
