@@ -1,7 +1,7 @@
 name = "StorageSystemsSimulations"
 uuid = "e2f1a126-19d0-4674-9252-42b2384f8e3c"
 authors = ["Jose Daniel Lara, Rodrigo Henriquez-Auba, Sourabh Dalvi"]
-version = "0.13.0"
+version = "0.14.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -22,6 +22,6 @@ InfrastructureSystems = "3"
 JuMP = "1"
 LinearAlgebra = "1"
 MathOptInterface = "1"
-PowerSimulations = "^0.31"
+PowerSimulations = "^0.32"
 PowerSystems = "5"
 julia = "^1.10"
