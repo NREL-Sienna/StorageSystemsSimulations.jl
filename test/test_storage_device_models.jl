@@ -318,7 +318,7 @@ end
 
     model = DecisionModel(template, sys)
     @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
-    moi_tests(model, 64, 0, 56, 52, 37, true)
+    moi_tests(model, 40, 0, 56, 52, 13, true)
 end
 
 #=
