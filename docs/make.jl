@@ -18,7 +18,8 @@ function clean_old_generated_files(dir::String; remove_all_md::Bool=false)
     if remove_all_md
         generated_files = filter(f -> endswith(f, ".md"), readdir(dir))
     else
-        generated_files = filter(f -> startswith(f, "generated_") && endswith(f, ".md"), readdir(dir))
+        generated_files =
+            filter(f -> startswith(f, "generated_") && endswith(f, ".md"), readdir(dir))
     end
     for file in generated_files
         rm(joinpath(dir, file), force=true)
@@ -43,36 +44,44 @@ end
 
 # Process tutorials with Literate
 # Exclude helper scripts that start with "_"
-tutorial_files = filter(x -> occursin(".jl", x) && !startswith(x, "_"), readdir("docs/src/tutorials"))
+tutorial_files =
+    filter(x -> occursin(".jl", x) && !startswith(x, "_"), readdir("docs/src/tutorials"))
 if !isempty(tutorial_files)
     tutorial_outputdir = joinpath(pwd(), "docs", "src", "tutorials", "generated")
     clean_old_generated_files(tutorial_outputdir; remove_all_md=true)
     mkpath(tutorial_outputdir)
-    
+
     for file in tutorial_files
         @show file
         infile_path = joinpath(pwd(), "docs", "src", "tutorials", file)
-        execute = occursin("EXECUTE = TRUE", uppercase(readline(infile_path))) ? true : false
+        execute =
+            occursin("EXECUTE = TRUE", uppercase(readline(infile_path))) ? true : false
         execute && include(infile_path)
-        
+
         outputfile = replace("$file", ".jl" => "")
-        
+
         # Generate markdown
-        Literate.markdown(infile_path,
-                          tutorial_outputdir;
-                          name = outputfile,
-                          credit = false,
-                          flavor = Literate.DocumenterFlavor(),
-                          documenter = true,
-                          postprocess = (content -> add_download_links(content, file, string(outputfile, ".ipynb"))),
-                          execute = execute)
-        
+        Literate.markdown(
+            infile_path,
+            tutorial_outputdir;
+            name=outputfile,
+            credit=false,
+            flavor=Literate.DocumenterFlavor(),
+            documenter=true,
+            postprocess=(
+                content -> add_download_links(content, file, string(outputfile, ".ipynb"))
+            ),
+            execute=execute,
+        )
+
         # Generate notebook
-        Literate.notebook(infile_path,
-                          tutorial_outputdir;
-                          name = outputfile,
-                          credit = false,
-                          execute = false)
+        Literate.notebook(
+            infile_path,
+            tutorial_outputdir;
+            name=outputfile,
+            credit=false,
+            execute=false,
+        )
     end
 end
 

@@ -52,5 +52,3 @@ set_device_model!(template_uc, storage_model)
 
 set_service_model!(template_uc, ServiceModel(VariableReserve{ReserveUp}, RangeReserve))
 set_service_model!(template_uc, ServiceModel(VariableReserve{ReserveDown}, RangeReserve))
-
-

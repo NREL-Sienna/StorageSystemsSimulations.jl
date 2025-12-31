@@ -27,5 +27,3 @@ c_sys5_bat = build_system(
 )
 orcd = get_component(ReserveDemandCurve, c_sys5_bat, "ORDC1")
 set_available!(orcd, false)
-
-
