@@ -9,7 +9,7 @@ using Literate
 const _DOCS_BASE_URL = "https://nrel-sienna.github.io/StorageSystemsSimulations.jl/stable"
 
 links = InterLinks(
-    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/latest/",
+    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/stable/",
 )
 
 include(joinpath(@__DIR__, "make_tutorials.jl"))
