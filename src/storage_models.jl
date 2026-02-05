@@ -376,12 +376,12 @@ function PSI.get_min_max_limits(
     ::Type{<:AbstractStorageFormulation},
 )
     min_max_limits = (
-        min=PSY.get_storage_level_limits(d).min *
-            PSY.get_storage_capacity(d) *
-            PSY.get_conversion_factor(d),
-        max=PSY.get_storage_level_limits(d).max *
-            PSY.get_storage_capacity(d) *
-            PSY.get_conversion_factor(d),
+        min = PSY.get_storage_level_limits(d).min *
+              PSY.get_storage_capacity(d) *
+              PSY.get_conversion_factor(d),
+        max = PSY.get_storage_level_limits(d).max *
+              PSY.get_storage_capacity(d) *
+              PSY.get_conversion_factor(d),
     )
     return min_max_limits
 end
@@ -428,7 +428,7 @@ function PSI.add_variables!(
             U,
             PSY.get_name.(devices),
             time_steps;
-            meta="$(typeof(service))_$(PSY.get_name(service))",
+            meta = "$(typeof(service))_$(PSY.get_name(service))",
         )
 
         for d in devices, t in time_steps
@@ -939,8 +939,8 @@ function PSI.add_constraints!(
         ReserveDischargeConstraint(),
         V,
         names,
-        time_steps,
-        meta="ub",
+        time_steps;
+        meta = "ub",
     )
 
     constraint_ds_lb = PSI.add_constraints_container!(
@@ -948,8 +948,8 @@ function PSI.add_constraints!(
         ReserveDischargeConstraint(),
         V,
         names,
-        time_steps,
-        meta="lb",
+        time_steps;
+        meta = "lb",
     )
 
     for d in devices, t in time_steps
@@ -986,8 +986,8 @@ function PSI.add_constraints!(
         ReserveChargeConstraint(),
         V,
         names,
-        time_steps,
-        meta="ub",
+        time_steps;
+        meta = "ub",
     )
 
     constraint_ch_lb = PSI.add_constraints_container!(
@@ -995,8 +995,8 @@ function PSI.add_constraints!(
         ReserveChargeConstraint(),
         V,
         names,
-        time_steps,
-        meta="lb",
+        time_steps;
+        meta = "lb",
     )
 
     for d in devices, t in PSI.get_time_steps(container)
@@ -1052,8 +1052,8 @@ function PSI.add_constraints!(
                 T(),
                 V,
                 names,
-                time_steps,
-                meta="$(typeof(service))_$(service_name)_discharge",
+                time_steps;
+                meta = "$(typeof(service))_$(service_name)_discharge",
             )
         elseif typeof(service) <: PSY.Reserve{PSY.ReserveDown}
             PSI.add_constraints_container!(
@@ -1061,8 +1061,8 @@ function PSI.add_constraints!(
                 T(),
                 V,
                 names,
-                time_steps,
-                meta="$(typeof(service))_$(service_name)_charge",
+                time_steps;
+                meta = "$(typeof(service))_$(service_name)_charge",
             )
         end
     end
@@ -1073,12 +1073,12 @@ function PSI.add_constraints!(
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
         soc_limits = (
-            min=PSY.get_storage_level_limits(storage).min *
-                PSY.get_storage_capacity(storage) *
-                PSY.get_conversion_factor(storage),
-            max=PSY.get_storage_level_limits(storage).max *
-                PSY.get_storage_capacity(storage) *
-                PSY.get_conversion_factor(storage),
+            min = PSY.get_storage_level_limits(storage).min *
+                  PSY.get_storage_capacity(storage) *
+                  PSY.get_conversion_factor(storage),
+            max = PSY.get_storage_level_limits(storage).max *
+                  PSY.get_storage_capacity(storage) *
+                  PSY.get_conversion_factor(storage),
         )
         for service in PSY.get_services(storage)
             sustained_time = PSY.get_sustained_time(service)
@@ -1201,8 +1201,8 @@ function PSI.add_constraints!(
                 T(),
                 V,
                 names,
-                time_steps,
-                meta="$(serv_type)_discharge",
+                time_steps;
+                meta = "$(serv_type)_discharge",
             )
         elseif serv_type <: PSY.Reserve{PSY.ReserveDown}
             PSI.add_constraints_container!(
@@ -1210,8 +1210,8 @@ function PSI.add_constraints!(
                 T(),
                 V,
                 names,
-                time_steps,
-                meta="$(serv_type)_charge",
+                time_steps;
+                meta = "$(serv_type)_charge",
             )
         end
     end
@@ -1222,12 +1222,12 @@ function PSI.add_constraints!(
         inv_efficiency = 1.0 / PSY.get_efficiency(storage).out
         eff_in = PSY.get_efficiency(storage).in
         soc_limits = (
-            min=PSY.get_storage_level_limits(storage).min *
-                PSY.get_storage_capacity(storage) *
-                PSY.get_conversion_factor(storage),
-            max=PSY.get_storage_level_limits(storage).max *
-                PSY.get_storage_capacity(storage) *
-                PSY.get_conversion_factor(storage),
+            min = PSY.get_storage_level_limits(storage).min *
+                  PSY.get_storage_capacity(storage) *
+                  PSY.get_conversion_factor(storage),
+            max = PSY.get_storage_level_limits(storage).max *
+                  PSY.get_storage_capacity(storage) *
+                  PSY.get_conversion_factor(storage),
         )
         expr_up_discharge = Set()
         expr_dn_charge = Set()
@@ -1360,8 +1360,8 @@ function PSI.add_constraints!(
             StorageTotalReserveConstraint(),
             typeof(s),
             device_names,
-            time_steps,
-            meta="$(s_name)_$V",
+            time_steps;
+            meta = "$(s_name)_$V",
         )
         for name in device_names, t in time_steps
             constraint_container[name, t] =
@@ -1603,8 +1603,8 @@ function PSI.add_constraints!(
         StorageRegularizationConstraintCharge(),
         V,
         names,
-        time_steps,
-        meta="ub",
+        time_steps;
+        meta = "ub",
     )
 
     constraint_lb = PSI.add_constraints_container!(
@@ -1612,8 +1612,8 @@ function PSI.add_constraints!(
         StorageRegularizationConstraintCharge(),
         V,
         names,
-        time_steps,
-        meta="lb",
+        time_steps;
+        meta = "lb",
     )
 
     for d in devices
@@ -1679,8 +1679,8 @@ function PSI.add_constraints!(
         StorageRegularizationConstraintDischarge(),
         V,
         names,
-        time_steps,
-        meta="ub",
+        time_steps;
+        meta = "ub",
     )
 
     constraint_lb = PSI.add_constraints_container!(
@@ -1688,8 +1688,8 @@ function PSI.add_constraints!(
         StorageRegularizationConstraintDischarge(),
         V,
         names,
-        time_steps,
-        meta="lb",
+        time_steps;
+        meta = "lb",
     )
 
     for d in devices
@@ -1859,8 +1859,8 @@ function PSI.update_decision_state!(
         state_data_index = 1
         state_data.timestamps[:] .= range(
             simulation_time;
-            step=state_resolution,
-            length=PSI.get_num_rows(state_data),
+            step = state_resolution,
+            length = PSI.get_num_rows(state_data),
         )
     else
         state_data_index = PSI.find_timestamp_index(state_timestamps, simulation_time)

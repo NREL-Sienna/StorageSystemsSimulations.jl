@@ -22,8 +22,8 @@ using HiGHS ## solver
 c_sys5_bat = build_system(
     PSITestSystems,
     "c_sys5_bat_ems";
-    add_single_time_series=true,
-    add_reserves=true,
+    add_single_time_series = true,
+    add_reserves = true,
 )
 orcd = get_component(ReserveDemandCurve, c_sys5_bat, "ORDC1")
 set_available!(orcd, false)
@@ -41,7 +41,7 @@ set_device_model!(template_uc, Line, StaticBranch)
 storage_model = DeviceModel(
     EnergyReservoirStorage,
     StorageDispatchWithReserves;
-    attributes=Dict(
+    attributes = Dict(
         "reservation" => true,
         "energy_target" => false,
         "cycling_limits" => false,

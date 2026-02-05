@@ -73,7 +73,7 @@ function add_input_output_active_power_contingency_constraints!(
         U,
         names,
         time_steps;
-        meta="input",
+        meta = "input",
     )
     constraint_output = PSI.add_constraints_container!(
         container,
@@ -81,7 +81,7 @@ function add_input_output_active_power_contingency_constraints!(
         U,
         names,
         time_steps;
-        meta="output",
+        meta = "output",
     )
     param_array = PSI.get_parameter_array(container, PSI.AvailableStatusParameter(), U)
     jump_model = PSI.get_jump_model(container)

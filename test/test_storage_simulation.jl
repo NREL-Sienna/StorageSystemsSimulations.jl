@@ -1,20 +1,21 @@
 @testset "Decision Model initial_conditions test for Storage" begin
     ######## Test with BookKeeping ########
     template = get_thermal_dispatch_template_network()
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build = true)
     set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
-    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    model = DecisionModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; output_dir = mktempdir(; cleanup = true)) ==
+          PSI.ModelBuildStatus.BUILT
     check_energy_initial_conditions_values(model, EnergyReservoirStorage)
     @test solve!(model) == PSI.RunStatus.SUCCESSFULLY_FINALIZED
 
     ######## Test with EnergyTarget ########
     template = get_thermal_dispatch_template_network()
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems"; force_build=true)
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat_ems"; force_build = true)
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String, Any}(
+        attributes = Dict{String, Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -23,8 +24,9 @@
         ),
     )
     set_device_model!(template, device_model)
-    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    model = DecisionModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; output_dir = mktempdir(; cleanup = true)) ==
+          PSI.ModelBuildStatus.BUILT
     check_energy_initial_conditions_values(model, EnergyReservoirStorage)
     @test solve!(model) == PSI.RunStatus.SUCCESSFULLY_FINALIZED
 end
@@ -35,12 +37,12 @@ end
     c_sys5_bat = PSB.build_system(
         PSITestSystems,
         "c_sys5_bat";
-        add_single_time_series=true,
-        force_build=true,
+        add_single_time_series = true,
+        force_build = true,
     )
     set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
-    model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
+    model = EmulationModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; executions = 10, output_dir = mktempdir(; cleanup = true)) ==
           PSI.ModelBuildStatus.BUILT
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
@@ -62,12 +64,12 @@ end
     c_sys5_bat = PSB.build_system(
         PSITestSystems,
         "c_sys5_bat";
-        add_single_time_series=true,
-        force_build=true,
+        add_single_time_series = true,
+        force_build = true,
     )
     set_device_model!(template, EnergyReservoirStorage, StorageDispatchWithReserves)
-    model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
+    model = EmulationModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; executions = 10, output_dir = mktempdir(; cleanup = true)) ==
           PSI.ModelBuildStatus.BUILT
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
@@ -89,13 +91,13 @@ end
     c_sys5_bat = PSB.build_system(
         PSITestSystems,
         "c_sys5_bat_ems";
-        add_single_time_series=true,
-        force_build=true,
+        add_single_time_series = true,
+        force_build = true,
     )
     device_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict{String, Any}(
+        attributes = Dict{String, Any}(
             "reservation" => true,
             "cycling_limits" => false,
             "energy_target" => true,
@@ -104,8 +106,8 @@ end
         ),
     )
     set_device_model!(template, device_model)
-    model = EmulationModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; executions=10, output_dir=mktempdir(; cleanup=true)) ==
+    model = EmulationModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; executions = 10, output_dir = mktempdir(; cleanup = true)) ==
           PSI.ModelBuildStatus.BUILT
     ic_data = PSI.get_initial_condition(
         PSI.get_optimization_container(model),
@@ -131,50 +133,50 @@ end
     template_ed = get_template_dispatch_storage_simulation()
 
     models = SimulationModels(;
-        decision_models=[
+        decision_models = [
             DecisionModel(
                 template_uc,
                 sys_uc;
-                name="UC",
-                optimizer=HiGHS_optimizer,
-                store_variable_names=true,
+                name = "UC",
+                optimizer = HiGHS_optimizer,
+                store_variable_names = true,
             ),
             DecisionModel(
                 template_ed,
                 sys_ed;
-                name="ED",
-                optimizer=HiGHS_optimizer,
-                store_variable_names=true,
+                name = "ED",
+                optimizer = HiGHS_optimizer,
+                store_variable_names = true,
             ),
         ],
     )
 
     sequence = SimulationSequence(;
-        models=models,
-        feedforwards=Dict(
+        models = models,
+        feedforwards = Dict(
             "ED" => [
                 SemiContinuousFeedforward(;
-                    component_type=ThermalStandard,
-                    source=OnVariable,
-                    affected_values=[ActivePowerVariable],
+                    component_type = ThermalStandard,
+                    source = OnVariable,
+                    affected_values = [ActivePowerVariable],
                 ),
                 EnergyLimitFeedforward(;
-                    component_type=EnergyReservoirStorage,
-                    source=ActivePowerOutVariable,
-                    affected_values=[ActivePowerOutVariable],
-                    number_of_periods=12,
+                    component_type = EnergyReservoirStorage,
+                    source = ActivePowerOutVariable,
+                    affected_values = [ActivePowerOutVariable],
+                    number_of_periods = 12,
                 ),
             ],
         ),
-        ini_cond_chronology=InterProblemChronology(),
+        ini_cond_chronology = InterProblemChronology(),
     )
 
     sim_cache = Simulation(;
-        name="sim",
-        steps=2,
-        models=models,
-        sequence=sequence,
-        simulation_folder=mktempdir(; cleanup=true),
+        name = "sim",
+        steps = 2,
+        models = models,
+        sequence = sequence,
+        simulation_folder = mktempdir(; cleanup = true),
     )
 
     build_out = build!(sim_cache)
@@ -192,16 +194,16 @@ end
     res_uc = res.decision_problem_results["UC"]
     p_out_bat =
         read_realized_variable(res_uc, "ActivePowerOutVariable__EnergyReservoirStorage")
-    @test isapprox(param_ed[!, :value], p_out_bat[!, :value] ./ 100.0; atol=1e-4)
+    @test isapprox(param_ed[!, :value], p_out_bat[!, :value] ./ 100.0; atol = 1e-4)
 end
 
 @testset "Test cost handling" begin
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build = true)
     template = get_thermal_dispatch_template_network()
     storage_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict(
+        attributes = Dict(
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => false,
@@ -210,12 +212,13 @@ end
         ),
     )
     set_device_model!(template, storage_model)
-    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    model = DecisionModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; output_dir = mktempdir(; cleanup = true)) ==
+          PSI.ModelBuildStatus.BUILT
 end
 
 @testset "Test storage with MarketBidCost" begin
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build=true)
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; force_build = true)
     batt = get_component(EnergyReservoirStorage, c_sys5_bat, "Bat")
     # setting the storage_capacity to a high value so that the state-of-charge
     # constraints are ineffective resulting in predictable dispatch results.
@@ -224,15 +227,15 @@ end
     set_operation_cost!(
         batt,
         MarketBidCost(;
-            no_load_cost=0.0,
-            start_up=(hot=3.0, warm=0.0, cold=0.0),
-            shut_down=1.5,
-            incremental_offer_curves=make_market_bid_curve(
+            no_load_cost = 0.0,
+            start_up = (hot = 3.0, warm = 0.0, cold = 0.0),
+            shut_down = 1.5,
+            incremental_offer_curves = make_market_bid_curve(
                 [0.0, 100.0, 200.0, 300.0, 400.0],
                 [15.0, 20.0, 25.0, 30.0],
                 0.0,
             ),
-            decremental_offer_curves=make_market_bid_curve(
+            decremental_offer_curves = make_market_bid_curve(
                 [0.0, 100.0, 200.0, 300.0, 400.0],
                 [14.0, 13.0, 12.0, 10.0],
                 0.0,
@@ -240,7 +243,7 @@ end
         ),
     )
     template = ProblemTemplate(
-        NetworkModel(CopperPlatePowerModel; duals=[CopperPlateBalanceConstraint]),
+        NetworkModel(CopperPlatePowerModel; duals = [CopperPlateBalanceConstraint]),
     )
     set_device_model!(template, ThermalStandard, ThermalBasicUnitCommitment)
     set_device_model!(template, PowerLoad, StaticPowerLoad)
@@ -248,7 +251,7 @@ end
     storage_model = DeviceModel(
         EnergyReservoirStorage,
         StorageDispatchWithReserves;
-        attributes=Dict(
+        attributes = Dict(
             "reservation" => false,
             "cycling_limits" => false,
             "energy_target" => false,
@@ -257,8 +260,9 @@ end
         ),
     )
     set_device_model!(template, storage_model)
-    model = DecisionModel(template, c_sys5_bat; optimizer=HiGHS_optimizer)
-    @test build!(model; output_dir=mktempdir(; cleanup=true)) == PSI.ModelBuildStatus.BUILT
+    model = DecisionModel(template, c_sys5_bat; optimizer = HiGHS_optimizer)
+    @test build!(model; output_dir = mktempdir(; cleanup = true)) ==
+          PSI.ModelBuildStatus.BUILT
     @test solve!(model) == PSI.RunStatus.SUCCESSFULLY_FINALIZED
     results = OptimizationProblemResults(model)
     p_out_bat = read_variable(results, "ActivePowerOutVariable__EnergyReservoirStorage")
