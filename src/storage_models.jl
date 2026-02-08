@@ -455,10 +455,12 @@ function PSI.add_variables!(
     U <: PSY.Storage,
 }
     @assert !isempty(devices)
-    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices))
+    time_steps = PSI.get_time_steps(container)
+    last_time_range = time_steps[end]:time_steps[end]
+    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices), last_time_range)
     for d in devices
         name = PSY.get_name(d)
-        variable[name] = JuMP.@variable(
+        variable[name, time_steps[end]] = JuMP.@variable(
             PSI.get_jump_model(container),
             base_name = "$(T)_{$(PSY.get_name(d))}",
             lower_bound = 0.0
@@ -478,10 +480,12 @@ function PSI.add_variables!(
     U <: PSY.Storage,
 }
     @assert !isempty(devices)
-    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices))
+    time_steps = PSI.get_time_steps(container)
+    last_time_range = time_steps[end]:time_steps[end]
+    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices), last_time_range)
     for d in devices
         name = PSY.get_name(d)
-        variable[name] = JuMP.@variable(
+        variable[name, time_steps[end]] = JuMP.@variable(
             PSI.get_jump_model(container),
             base_name = "$(T)_{$(PSY.get_name(d))}",
             lower_bound = 0.0
@@ -1395,7 +1399,7 @@ function PSI.add_constraints!(
         target = PSY.get_storage_target(d)
         constraint_container[name] = JuMP.@constraint(
             PSI.get_jump_model(container),
-            energy_var[name, time_steps[end]] - surplus_var[name] + shortfall_var[name] == target
+            energy_var[name, time_steps[end]] - surplus_var[name, time_steps[end]] + shortfall_var[name, time_steps[end]] == target
         )
     end
 
@@ -1427,11 +1431,11 @@ function add_cycling_charge_without_reserves!(
             PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name] = JuMP.@constraint(
+        constraint[name, time_steps[end]] = JuMP.@constraint(
             PSI.get_jump_model(container),
             sum((
                 powerin_var[name, t] * efficiency.in * fraction_of_hour for t in time_steps
-            )) - slack_var[name] <= e_max * cycle_count
+            )) - slack_var[name, time_steps[end]] <= e_max * cycle_count
         )
     end
     return
@@ -1463,13 +1467,13 @@ function add_cycling_charge_with_reserves!(
             PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name] = JuMP.@constraint(
+        constraint[name, time_steps[end]] = JuMP.@constraint(
             PSI.get_jump_model(container),
             sum((
                 (powerin_var[name, t] + r_dn_ch[name, t]) *
                 efficiency.in *
                 fraction_of_hour for t in time_steps
-            )) - slack_var[name] <= e_max * cycle_count
+            )) - slack_var[name, time_steps[end]] <= e_max * cycle_count
         )
     end
     return
@@ -1516,12 +1520,12 @@ function add_cycling_discharge_without_reserves!(
             PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name] = JuMP.@constraint(
+        constraint[name, time_steps[end]] = JuMP.@constraint(
             PSI.get_jump_model(container),
             sum(
                 (powerout_var[name, t] / efficiency.out) * fraction_of_hour for
                 t in time_steps
-            ) - slack_var[name] <= e_max * cycle_count
+            ) - slack_var[name, time_steps[end]] <= e_max * cycle_count
         )
     end
     return
@@ -1553,12 +1557,12 @@ function add_cycling_discharge_with_reserves!(
             PSY.get_conversion_factor(d)
         cycle_count = PSY.get_cycle_limits(d)
         efficiency = PSY.get_efficiency(d)
-        constraint[name] = JuMP.@constraint(
+        constraint[name, time_steps[end]] = JuMP.@constraint(
             PSI.get_jump_model(container),
             sum(
                 ((powerout_var[name, t] + r_up_ds[name, t]) / efficiency.out) *
                 fraction_of_hour for t in time_steps
-            ) - slack_var[name] <= e_max * cycle_count
+            ) - slack_var[name, time_steps[end]] <= e_max * cycle_count
         )
     end
     return
@@ -1813,12 +1817,13 @@ function PSI.add_proportional_cost!(
     T <: Union{StorageChargeCyclingSlackVariable, StorageDischargeCyclingSlackVariable},
     U <: PSY.EnergyReservoirStorage,
 }
+    time_steps = PSI.get_time_steps(container)
     variable = PSI.get_variable(container, T(), U)
     for d in devices
         name = PSY.get_name(d)
         op_cost_data = PSY.get_operation_cost(d)
         cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
-        PSI.add_to_objective_invariant_expression!(container, variable[name] * cost_term)
+        PSI.add_to_objective_invariant_expression!(container, variable[name, time_steps[end]] * cost_term)
     end
 end
 
@@ -1831,12 +1836,13 @@ function PSI.add_proportional_cost!(
     T <: Union{StorageEnergyShortageVariable, StorageEnergySurplusVariable},
     U <: PSY.EnergyReservoirStorage,
 }
+    time_steps = PSI.get_time_steps(container)
     variable = PSI.get_variable(container, T(), U)
     for d in devices
         name = PSY.get_name(d)
         op_cost_data = PSY.get_operation_cost(d)
         cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
-        PSI.add_to_objective_invariant_expression!(container, variable[name] * cost_term)
+        PSI.add_to_objective_invariant_expression!(container, variable[name, time_steps[end]] * cost_term)
     end
 end
 
