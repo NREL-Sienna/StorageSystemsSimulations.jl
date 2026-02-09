@@ -457,7 +457,13 @@ function PSI.add_variables!(
     @assert !isempty(devices)
     time_steps = PSI.get_time_steps(container)
     last_time_range = time_steps[end]:time_steps[end]
-    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices), last_time_range)
+    variable = PSI.add_variable_container!(
+        container,
+        T(),
+        U,
+        PSY.get_name.(devices),
+        last_time_range,
+    )
     for d in devices
         name = PSY.get_name(d)
         variable[name, time_steps[end]] = JuMP.@variable(
@@ -482,7 +488,13 @@ function PSI.add_variables!(
     @assert !isempty(devices)
     time_steps = PSI.get_time_steps(container)
     last_time_range = time_steps[end]:time_steps[end]
-    variable = PSI.add_variable_container!(container, T(), U, PSY.get_name.(devices), last_time_range)
+    variable = PSI.add_variable_container!(
+        container,
+        T(),
+        U,
+        PSY.get_name.(devices),
+        last_time_range,
+    )
     for d in devices
         name = PSY.get_name(d)
         variable[name, time_steps[end]] = JuMP.@variable(
@@ -1399,7 +1411,8 @@ function PSI.add_constraints!(
         target = PSY.get_storage_target(d)
         constraint_container[name] = JuMP.@constraint(
             PSI.get_jump_model(container),
-            energy_var[name, time_steps[end]] - surplus_var[name, time_steps[end]] + shortfall_var[name, time_steps[end]] == target
+            energy_var[name, time_steps[end]] - surplus_var[name, time_steps[end]] +
+            shortfall_var[name, time_steps[end]] == target
         )
     end
 
@@ -1823,7 +1836,10 @@ function PSI.add_proportional_cost!(
         name = PSY.get_name(d)
         op_cost_data = PSY.get_operation_cost(d)
         cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
-        PSI.add_to_objective_invariant_expression!(container, variable[name, time_steps[end]] * cost_term)
+        PSI.add_to_objective_invariant_expression!(
+            container,
+            variable[name, time_steps[end]] * cost_term,
+        )
     end
 end
 
@@ -1842,7 +1858,10 @@ function PSI.add_proportional_cost!(
         name = PSY.get_name(d)
         op_cost_data = PSY.get_operation_cost(d)
         cost_term = PSI.proportional_cost(op_cost_data, T(), d, formulation)
-        PSI.add_to_objective_invariant_expression!(container, variable[name, time_steps[end]] * cost_term)
+        PSI.add_to_objective_invariant_expression!(
+            container,
+            variable[name, time_steps[end]] * cost_term,
+        )
     end
 end
 
