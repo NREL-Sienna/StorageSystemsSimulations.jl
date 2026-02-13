@@ -3,9 +3,13 @@ using PowerSystemCaseBuilder
 using StorageSystemsSimulations
 using HydroPowerSimulations
 using Logging
+using InfrastructureSystems
 import InfrastructureSystems as IS
+using PowerSimulations
 import PowerSimulations as PSI
+using PowerSystems
 import PowerSystems as PSY
+using PowerSystemCaseBuilder
 import PowerSystemCaseBuilder as PSB
 using JuMP
 using HiGHS
@@ -14,10 +18,6 @@ using Dates
 using TimeSeries
 import OrderedCollections: OrderedDict
 
-const IS = InfrastructureSystems
-const PSY = PowerSystems
-const PSB = PowerSystemCaseBuilder
-const PSI = PowerSimulations
 const PM = PSI.PM
 const PNM = PSI.PNM
 const MOI = PSI.MOI
