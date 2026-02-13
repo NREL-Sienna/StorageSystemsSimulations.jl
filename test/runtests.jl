@@ -3,9 +3,10 @@ using PowerSystemCaseBuilder
 using StorageSystemsSimulations
 using HydroPowerSimulations
 using Logging
-using InfrastructureSystems
-using PowerSimulations
-using PowerSystems
+import InfrastructureSystems as IS
+import PowerSimulations as PSI
+import PowerSystems as PSY
+import PowerSystemCaseBuilder as PSB
 using JuMP
 using HiGHS
 using GLPK

@@ -43,23 +43,16 @@ import JuMP: optimizer_with_attributes
 import JuMP.Containers: DenseAxisArray, SparseAxisArray
 import LinearAlgebra
 
-import InfrastructureSystems
-import PowerSystems
-import PowerSimulations
-import MathOptInterface
-import PowerSimulations
-import PowerSystems
-import JuMP
+import InfrastructureSystems as IS
+import InfrastructureSystems.Optimization as ISOPT
+import PowerSystems as PSY
+import PowerSimulations as PSI
+import MathOptInterface as MOI
 import Dates
 import DataStructures: OrderedDict
 
-const MOI = MathOptInterface
-const PSI = PowerSimulations
-const PSY = PowerSystems
 const PNM = PSI.PNM
 const PM = PSI.PM
-const IS = InfrastructureSystems
-const ISOPT = InfrastructureSystems.Optimization
 
 using DocStringExtensions
 @template (FUNCTIONS, METHODS) = """
