@@ -17,9 +17,9 @@ const IS = InfrastructureSystems
 const PSY = PowerSystems
 const PSB = PowerSystemCaseBuilder
 const PSI = PowerSimulations
-const PM = PSI.PowerModels
-const PNM = PSI.PowerNetworkMatrices
-const MOI = PSI.MathOptInterface
+const PM = PSI.PM
+const PNM = PSI.PNM
+const MOI = PSI.MOI
 
 import Aqua
 Aqua.test_unbound_args(StorageSystemsSimulations)
