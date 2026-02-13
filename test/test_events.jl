@@ -5,33 +5,33 @@
     outage_data[10:15] .= 1
     outage_timeseries = TimeArray(dates_ts, outage_data)
     res = _run_fixed_forced_outage_sim_with_timeseries(;
-        sys_emulator=build_system(
+        sys_emulator = build_system(
             PSITestSystems,
             "c_sys5_bat";
-            add_single_time_series=true,
-            force_build=true,
+            add_single_time_series = true,
+            force_build = true,
         ),
-        networks=repeat([PSI.CopperPlatePowerModel], 3),
-        optimizers=repeat([HiGHS_optimizer], 3),
-        outage_status_timeseries=outage_timeseries,
-        device_type=EnergyReservoirStorage,
-        device_names=["Bat"],
+        networks = repeat([PSI.CopperPlatePowerModel], 3),
+        optimizers = repeat([HiGHS_optimizer], 3),
+        outage_status_timeseries = outage_timeseries,
+        device_type = EnergyReservoirStorage,
+        device_names = ["Bat"],
     )
     em = get_emulation_problem_results(res)
     status = read_realized_variable(
         em,
-        "AvailableStatusParameter__EnergyReservoirStorage",
-        table_format=TableFormat.WIDE,
+        "AvailableStatusParameter__EnergyReservoirStorage";
+        table_format = TableFormat.WIDE,
     )
     apv_out = read_realized_variable(
         em,
-        "ActivePowerOutVariable__EnergyReservoirStorage",
-        table_format=TableFormat.WIDE,
+        "ActivePowerOutVariable__EnergyReservoirStorage";
+        table_format = TableFormat.WIDE,
     )
     apv_in = read_realized_variable(
         em,
-        "ActivePowerInVariable__EnergyReservoirStorage",
-        table_format=TableFormat.WIDE,
+        "ActivePowerInVariable__EnergyReservoirStorage";
+        table_format = TableFormat.WIDE,
     )
     for (ix, x) in enumerate(outage_data[1:24])
         @test x != Int64(status[!, "Bat"][ix])
