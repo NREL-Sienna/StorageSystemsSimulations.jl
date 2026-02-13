@@ -4,8 +4,13 @@ using StorageSystemsSimulations
 using HydroPowerSimulations
 using Logging
 using InfrastructureSystems
+import InfrastructureSystems as IS
 using PowerSimulations
+import PowerSimulations as PSI
 using PowerSystems
+import PowerSystems as PSY
+using PowerSystemCaseBuilder
+import PowerSystemCaseBuilder as PSB
 using JuMP
 using HiGHS
 using GLPK
@@ -13,13 +18,9 @@ using Dates
 using TimeSeries
 import OrderedCollections: OrderedDict
 
-const IS = InfrastructureSystems
-const PSY = PowerSystems
-const PSB = PowerSystemCaseBuilder
-const PSI = PowerSimulations
-const PM = PSI.PowerModels
-const PNM = PSI.PowerNetworkMatrices
-const MOI = PSI.MathOptInterface
+const PM = PSI.PM
+const PNM = PSI.PNM
+const MOI = PSI.MOI
 
 import Aqua
 Aqua.test_unbound_args(StorageSystemsSimulations)
@@ -36,6 +37,7 @@ LOG_LEVELS = Dict(
     "Error" => Logging.Error,
 )
 
+include("test_utils/events.jl")
 include("test_utils/mock_operation_models.jl")
 include("test_utils/model_checks.jl")
 include("test_utils/operations_problems_templates.jl")

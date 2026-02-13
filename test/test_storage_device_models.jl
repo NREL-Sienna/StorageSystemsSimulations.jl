@@ -174,11 +174,11 @@ end
     )
 
     ff_et = EnergyTargetFeedforward(;
-        component_type = EnergyReservoirStorage,
-        source = EnergyVariable,
-        affected_values = [EnergyVariable],
-        target_period = 12,
-        penalty_cost = 1e5,
+        component_type=EnergyReservoirStorage,
+        source=EnergyVariable,
+        affected_values=[EnergyVariable],
+        target_period=24,
+        penalty_cost=1e5,
     )
 
     PSI.attach_feedforward!(device_model, ff_et)
@@ -210,11 +210,11 @@ end
     )
 
     ff_et = EnergyTargetFeedforward(;
-        component_type = EnergyReservoirStorage,
-        source = EnergyVariable,
-        affected_values = [EnergyVariable],
-        target_period = 12,
-        penalty_cost = 1e5,
+        component_type=EnergyReservoirStorage,
+        source=EnergyVariable,
+        affected_values=[EnergyVariable],
+        target_period=24,
+        penalty_cost=1e5,
     )
 
     PSI.attach_feedforward!(device_model, ff_et)
