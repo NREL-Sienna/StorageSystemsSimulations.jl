@@ -177,7 +177,7 @@ end
         component_type=EnergyReservoirStorage,
         source=EnergyVariable,
         affected_values=[EnergyVariable],
-        target_period=12,
+        target_period=24,
         penalty_cost=1e5,
     )
 
@@ -213,7 +213,7 @@ end
         component_type=EnergyReservoirStorage,
         source=EnergyVariable,
         affected_values=[EnergyVariable],
-        target_period=12,
+        target_period=24,
         penalty_cost=1e5,
     )
 

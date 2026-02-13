@@ -111,12 +111,12 @@ function PSI.add_feedforward_constraints!(
             name = PSY.get_name(d)
             con_ub[name] = JuMP.@constraint(
                 PSI.get_jump_model(container),
-                variable[name, target_period] + slack_var[name] >=
+                variable[name, target_period] + slack_var[name, target_period] >=
                 param[name, target_period] * multiplier[name, target_period]
             )
             PSI.add_to_objective_invariant_expression!(
                 container,
-                slack_var[name] * penalty_cost,
+                slack_var[name, target_period] * penalty_cost,
             )
         end
     end
