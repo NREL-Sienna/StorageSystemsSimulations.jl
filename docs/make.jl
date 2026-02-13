@@ -3,16 +3,22 @@ using PowerSystems
 using StorageSystemsSimulations
 using DataStructures
 using DocumenterInterLinks
+using Literate
+
+# UPDATE FOR CURRENT MODULE NAME HERE
+const _DOCS_BASE_URL = "https://nrel-sienna.github.io/StorageSystemsSimulations.jl/stable"
 
 links = InterLinks(
-    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/latest/",
+    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/stable/",
 )
+
+include(joinpath(@__DIR__, "make_tutorials.jl"))
+make_tutorials()
 
 pages = OrderedDict(
     "Welcome Page" => "index.md",
     "Tutorials" => Any[
-        "Single State Model" => "tutorials/single_stage_model.md",
-        "Simulation Model" => "tutorials/simulation_tutorial.md",
+        "Single State Model" => "tutorials/generated_single_stage_model.md",
     ],
     # TODO Add sections here once there is content
     # "Explanation" => "explanation/stub.md",

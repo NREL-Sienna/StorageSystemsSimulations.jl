@@ -16,10 +16,10 @@ function _make_deterministic_ts(
         ts_data[init_time + i * interval] = series
     end
     return Deterministic(;
-        name=name,
-        data=ts_data,
-        resolution=resolution,
-        interval=interval,
+        name = name,
+        data = ts_data,
+        resolution = resolution,
+        interval = interval,
     )
 end
 
@@ -71,8 +71,8 @@ function _make_deterministic_ts(
     interval::TimePeriod,
     count::Int,
     resolution::TimePeriod;
-    override_min_x=nothing,
-    create_extra_tranches=false,
+    override_min_x = nothing,
+    create_extra_tranches = false,
 )
     (tranche_incr_x, res_incr_x, interval_incr_x) = incrs_x
     (tranche_incr_y, res_incr_y, interval_incr_y) = incrs_y
@@ -113,10 +113,10 @@ function _make_deterministic_ts(
     end
 
     return Deterministic(;
-        name=name,
-        data=ts_data,
-        resolution=resolution,
-        interval=interval,
+        name = name,
+        data = ts_data,
+        resolution = resolution,
+        interval = interval,
     )
 end
 
@@ -129,8 +129,8 @@ function _make_deterministic_ts(
     incrs_x::NTuple{3, Float64},
     incrs_y::NTuple{3, Float64},
     model_ts::Union{DeterministicSingleTimeSeries, Deterministic};
-    override_min_x=nothing,
-    create_extra_tranches=false,
+    override_min_x = nothing,
+    create_extra_tranches = false,
 )
     return _make_deterministic_ts(
         name,
@@ -142,8 +142,8 @@ function _make_deterministic_ts(
         IS.get_interval(model_ts),
         IS.get_count(model_ts),
         IS.get_resolution(model_ts);
-        override_min_x=override_min_x,
-        create_extra_tranches=create_extra_tranches,
+        override_min_x = override_min_x,
+        create_extra_tranches = create_extra_tranches,
     )
 end
 
@@ -182,12 +182,12 @@ Extend the MarketBidCost objects attached to the selected components such that t
 function extend_mbc!(
     sys::PSY.System,
     active_components::ComponentSelector;
-    initial_varies::Bool=false,
-    breakpoints_vary::Bool=false,
-    slopes_vary::Bool=false,
-    initial_input_names_vary::Bool=false,
-    variable_cost_names_vary::Bool=false,
-    zero_cost_at_min::Bool=false,
+    initial_varies::Bool = false,
+    breakpoints_vary::Bool = false,
+    slopes_vary::Bool = false,
+    initial_input_names_vary::Bool = false,
+    variable_cost_names_vary::Bool = false,
+    zero_cost_at_min::Bool = false,
 )
     @assert !isempty(get_components(active_components, sys)) "No components selected"
     # grab some Deterministic time series, so we know the horizon, count, and interval
@@ -264,7 +264,7 @@ end
 function add_mbc!(
     sys::PSY.System,
     active_components::ComponentSelector;
-    decremental::Bool=false,
+    decremental::Bool = false,
 )
     incr_slopes = [0.3, 0.5, 0.7]
     x_coords = [0.1, 0.3, 0.6, 1.0]
@@ -279,18 +279,18 @@ function add_mbc!(
             PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, decr_slopes),
         )
         mbc = MarketBidCost(;
-            no_load_cost=0.0,
-            start_up=(hot=0.0, warm=0.0, cold=0.0),
-            shut_down=0.0,
-            incremental_offer_curves=incr_curve,
-            decremental_offer_curves=decr_curve,
+            no_load_cost = 0.0,
+            start_up = (hot = 0.0, warm = 0.0, cold = 0.0),
+            shut_down = 0.0,
+            incremental_offer_curves = incr_curve,
+            decremental_offer_curves = decr_curve,
         )
     else
         mbc = MarketBidCost(;
-            no_load_cost=0.0,
-            start_up=(hot=0.0, warm=0.0, cold=0.0),
-            shut_down=0.0,
-            incremental_offer_curves=incr_curve,
+            no_load_cost = 0.0,
+            start_up = (hot = 0.0, warm = 0.0, cold = 0.0),
+            shut_down = 0.0,
+            incremental_offer_curves = incr_curve,
         )
     end
     for comp in get_components(active_components, sys)

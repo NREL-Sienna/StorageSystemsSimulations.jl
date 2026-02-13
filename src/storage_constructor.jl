@@ -59,8 +59,8 @@ function _add_ancillary_services!(
             TotalReserveOffering(),
             T,
             PSY.get_name.(devices),
-            time_steps,
-            meta="$(typeof(s))_$(PSY.get_name(s))",
+            time_steps;
+            meta = "$(typeof(s))_$(PSY.get_name(s))",
         )
     end
 

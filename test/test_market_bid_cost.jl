@@ -4,7 +4,7 @@ const TIME1 = DateTime("2024-01-01T00:00:00")
 # question: do these tests belong in PSI, or here?
 function build_generic_mbc_model(sys::System)
     template = ProblemTemplate(
-        NetworkModel(CopperPlatePowerModel; duals=[CopperPlateBalanceConstraint]),
+        NetworkModel(CopperPlatePowerModel; duals = [CopperPlateBalanceConstraint]),
     )
     device_to_formulation = Dict{Type{<:PSY.Device}, Type{<:PSI.AbstractDeviceFormulation}}(
         ThermalStandard => ThermalBasicUnitCommitment,
@@ -23,42 +23,42 @@ function build_generic_mbc_model(sys::System)
     model = DecisionModel(
         template,
         sys;
-        name="UC",
-        store_variable_names=true,
-        optimizer=HiGHS_optimizer,
-        system_to_file=false,
+        name = "UC",
+        store_variable_names = true,
+        optimizer = HiGHS_optimizer,
+        system_to_file = false,
     )
     return model
 end
 
-function run_generic_mbc_sim(sys::System; in_memory_store::Bool=false)
+function run_generic_mbc_sim(sys::System; in_memory_store::Bool = false)
     model = build_generic_mbc_model(sys)
-    models = SimulationModels(; decision_models=[model])
+    models = SimulationModels(; decision_models = [model])
     sequence = SimulationSequence(;
-        models=models,
-        feedforwards=Dict(),
-        ini_cond_chronology=InterProblemChronology(),
+        models = models,
+        feedforwards = Dict(),
+        ini_cond_chronology = InterProblemChronology(),
     )
 
     sim = Simulation(;
-        name="compact_sim",
-        steps=2,
-        models=models,
-        sequence=sequence,
-        initial_time=TIME1,
-        simulation_folder=mktempdir(),
+        name = "compact_sim",
+        steps = 2,
+        models = models,
+        sequence = sequence,
+        initial_time = TIME1,
+        simulation_folder = mktempdir(),
     )
-    build!(sim; serialize=false)
-    execute!(sim; enable_progress_bar=true, in_memory=in_memory_store)
+    build!(sim; serialize = false)
+    execute!(sim; enable_progress_bar = true, in_memory = in_memory_store)
 
     sim_res = SimulationResults(sim)
     res = get_decision_problem_results(sim_res, "UC")
     return model, res
 end
 
-function run_generic_mbc_prob(sys::System; test_success=true)
+function run_generic_mbc_prob(sys::System; test_success = true)
     model = build_generic_mbc_model(sys)
-    build_result = build!(model; output_dir=test_path)
+    build_result = build!(model; output_dir = test_path)
     test_success && @test build_result == PSI.ModelBuildStatus.BUILT
     solve_result = solve!(model)
     test_success && @test solve_result == PSI.RunStatus.SUCCESSFULLY_FINALIZED
@@ -67,7 +67,7 @@ function run_generic_mbc_prob(sys::System; test_success=true)
 end
 
 @testset "storage MBC" begin
-    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; add_reserves=true)
+    c_sys5_bat = PSB.build_system(PSITestSystems, "c_sys5_bat"; add_reserves = true)
     storage1 = PSY.get_component(PSY.Storage, c_sys5_bat, "Bat")
     @assert storage1 !== nothing "Storage Bat2 not found"
     # attach MBC to the storage, via
@@ -84,11 +84,11 @@ end
         PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, decr_slopes),
     )
     mbc = MarketBidCost(;
-        no_load_cost=0.0,
-        start_up=(hot=0.0, warm=0.0, cold=0.0),
-        shut_down=0.0,
-        incremental_offer_curves=incr_curve,
-        decremental_offer_curves=decr_curve,
+        no_load_cost = 0.0,
+        start_up = (hot = 0.0, warm = 0.0, cold = 0.0),
+        shut_down = 0.0,
+        incremental_offer_curves = incr_curve,
+        decremental_offer_curves = decr_curve,
     )
     PSY.set_operation_cost!(storage1, mbc)
     run_generic_mbc_prob(c_sys5_bat)
@@ -123,7 +123,7 @@ function resample_timeseries!(sys, interval, horizon)
             TIME1 => collect(ts.data[TIME1][1:horizon]),
             TIME1 + interval => collect(ts.data[TIME1][2:(horizon + 1)]),
         )
-        new_ts = Deterministic(; name=ts.name, data=new_ts_data, resolution=Hour(1))
+        new_ts = Deterministic(; name = ts.name, data = new_ts_data, resolution = Hour(1))
         for comp in key_to_comp[key]
             add_time_series!(sys, comp, new_ts)
         end
@@ -150,11 +150,11 @@ end
             PiecewiseIncrementalCurve(val_at_zero, initial_input, x_coords, decr_data),
         )
         mbc = MarketBidCost(;
-            no_load_cost=0.0,
-            start_up=(hot=0.0, warm=0.0, cold=0.0),
-            shut_down=0.0,
-            incremental_offer_curves=incr_curve,
-            decremental_offer_curves=decr_curve,
+            no_load_cost = 0.0,
+            start_up = (hot = 0.0, warm = 0.0, cold = 0.0),
+            shut_down = 0.0,
+            incremental_offer_curves = incr_curve,
+            decremental_offer_curves = decr_curve,
         )
         storage1 = PSY.get_component(PSY.Storage, c_sys5_bat, "Bat")
         PSY.set_operation_cost!(storage1, mbc)
@@ -173,11 +173,11 @@ end
     storage1 = PSY.get_component(PSY.Storage, c_sys5_bat, "Bat")
     selector = make_selector(PSY.Storage, "Bat")
 
-    add_mbc!(c_sys5_bat, selector; decremental=true)
+    add_mbc!(c_sys5_bat, selector; decremental = true)
     @assert typeof(get_operation_cost(storage1)) == MarketBidCost
     @assert !isnothing(get_incremental_offer_curves(get_operation_cost(storage1)))
     @assert !isnothing(get_decremental_offer_curves(get_operation_cost(storage1)))
-    extend_mbc!(c_sys5_bat, selector; zero_cost_at_min=true)
+    extend_mbc!(c_sys5_bat, selector; zero_cost_at_min = true)
     @assert typeof(get_incremental_offer_curves(get_operation_cost(storage1))) <:
             TimeSeriesKey
     @assert typeof(get_decremental_offer_curves(get_operation_cost(storage1))) <:
