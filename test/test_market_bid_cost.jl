@@ -11,7 +11,7 @@ function build_generic_mbc_model(sys::System)
         ThermalMultiStart => ThermalMultiStartUnitCommitment,
         PowerLoad => StaticPowerLoad,
         RenewableDispatch => RenewableFullDispatch,
-        HydroDispatch => HydroCommitmentRunOfRiver,
+        HydroDispatch => FixedOutput,
         EnergyReservoirStorage => StorageDispatchWithReserves,
     )
     for (device, formulation) in device_to_formulation
