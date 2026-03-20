@@ -71,6 +71,8 @@ PSI.objective_function_multiplier(::PSI.VariableType, ::AbstractStorageFormulati
 PSI.objective_function_multiplier(::StorageEnergySurplusVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 PSI.objective_function_multiplier(::StorageEnergyShortageVariable, ::AbstractStorageFormulation)=PSI.OBJECTIVE_FUNCTION_POSITIVE
 
+PSI.sos_status(::PSY.Storage, ::AbstractStorageFormulation)=PSI.SOSStatusVariable.NO_VARIABLE
+
 PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergySurplusVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=PSY.get_energy_surplus_cost(cost)
 PSI.proportional_cost(cost::PSY.StorageCost, ::StorageEnergyShortageVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=PSY.get_energy_shortage_cost(cost)
 PSI.proportional_cost(::PSY.StorageCost, ::StorageChargeCyclingSlackVariable, ::PSY.EnergyReservoirStorage, ::AbstractStorageFormulation)=CYCLE_VIOLATION_COST
