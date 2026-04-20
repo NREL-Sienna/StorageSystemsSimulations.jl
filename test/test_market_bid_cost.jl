@@ -26,7 +26,6 @@ function build_generic_mbc_model(sys::System)
         name = "UC",
         store_variable_names = true,
         optimizer = HiGHS_optimizer,
-        system_to_file = false,
     )
     return model
 end
@@ -48,7 +47,7 @@ function run_generic_mbc_sim(sys::System; in_memory_store::Bool = false)
         initial_time = TIME1,
         simulation_folder = mktempdir(),
     )
-    build!(sim; serialize = false)
+    build!(sim)
     execute!(sim; enable_progress_bar = true, in_memory = in_memory_store)
 
     sim_res = SimulationResults(sim)

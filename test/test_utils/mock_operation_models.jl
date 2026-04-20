@@ -136,22 +136,20 @@ function mock_construct_device!(
         PSI.get_system(problem),
         Dict{Int64, Set{Int64}}(),
     )
-    if PSI.validate_available_devices(model, PSI.get_system(problem))
-        PSI.construct_device!(
-            PSI.get_optimization_container(problem),
-            PSI.get_system(problem),
-            PSI.ArgumentConstructStage(),
-            model,
-            PSI.get_network_model(template),
-        )
-        PSI.construct_device!(
-            PSI.get_optimization_container(problem),
-            PSI.get_system(problem),
-            PSI.ModelConstructStage(),
-            model,
-            PSI.get_network_model(template),
-        )
-    end
+    PSI.construct_device!(
+        PSI.get_optimization_container(problem),
+        PSI.get_system(problem),
+        PSI.ArgumentConstructStage(),
+        model,
+        PSI.get_network_model(template),
+    )
+    PSI.construct_device!(
+        PSI.get_optimization_container(problem),
+        PSI.get_system(problem),
+        PSI.ModelConstructStage(),
+        model,
+        PSI.get_network_model(template),
+    )
 
     PSI.check_optimization_container(PSI.get_optimization_container(problem))
 
