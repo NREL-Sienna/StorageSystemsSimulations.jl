@@ -14,4 +14,4 @@ Contributions to the development and enhancement of StorageSystemsSimulations is
 
 ## License
 
-StorageSystemsSimulations is released under a BSD [license](https://github.com/Sienna-Platform/StorageSystemsSimulations/blob/master/LICENSE). StorageSystemsSimulations has been developed as part of ... at the U.S. Department of Energy's National Renewable Energy Laboratory ([NREL](https://www.nrel.gov/))
+StorageSystemsSimulations is released under a BSD [license](https://github.com/Sienna-Platform/StorageSystemsSimulations/blob/master/LICENSE). StorageSystemsSimulations has been developed as part of ... at the U.S. Department of Energy's [National Laboratory of the Rockies (NLR)](https://www.nlr.gov/), formerly known as NREL.
