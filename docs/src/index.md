@@ -7,7 +7,7 @@ CurrentModule = StorageSystemsSimulations
 ## Overview
 
 `StorageSystemsSimulations.jl` is a
-[`PowerSimulations.jl`](https://nrel-sienna.github.io/PowerSimulations.jl/stable/)
+[`PowerSimulations.jl`](https://sienna-platform.github.io/PowerSimulations.jl/stable/)
 extension to support formulations and models related to energy storage.
 
 Operational Storage Models can have multiple combinations of different restrictions.
@@ -18,15 +18,15 @@ implementations for different attributes defined in [`PowerSimulations.DeviceMod
 ## About Sienna
 
 `StorageSystemsSimulations.jl` is part of the National Renewable Energy Laboratory's
-[Sienna ecosystem](https://nrel-sienna.github.io/Sienna/), an open source framework for
+[Sienna ecosystem](https://sienna-platform.github.io/Sienna/), an open source framework for
 power system modeling, simulation, and optimization. The Sienna ecosystem can be
-[found on Github](https://github.com/NREL-Sienna/Sienna). It contains three applications:
+[found on Github](https://github.com/Sienna-Platform/Sienna). It contains three applications:
 
-  - [Sienna\Data](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_data.html) enables
+  - [Sienna\Data](https://sienna-platform.github.io/Sienna/pages/applications/sienna_data.html) enables
     efficient data input, analysis, and transformation
-  - [Sienna\Ops](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_ops.html) enables
+  - [Sienna\Ops](https://sienna-platform.github.io/Sienna/pages/applications/sienna_ops.html) enables
     enables system scheduling simulations by formulating and solving optimization problems
-  - [Sienna\Dyn](https://nrel-sienna.github.io/Sienna/pages/applications/sienna_dyn.html) enables
+  - [Sienna\Dyn](https://sienna-platform.github.io/Sienna/pages/applications/sienna_dyn.html) enables
     system transient analysis including small signal stability and full system dynamic
     simulations
 
@@ -35,7 +35,7 @@ programming language. `StorageSystemsSimulations.jl` is part of Sienna\Ops.
 
 ## Installation and Quick Links
 
-  - [Sienna installation page](https://nrel-sienna.github.io/Sienna/SiennaDocs/docs/build/how-to/install/):
+  - [Sienna installation page](https://sienna-platform.github.io/Sienna/SiennaDocs/docs/build/how-to/install/):
     Instructions to install `StorageSystemsSimulations.jl` and other Sienna\Ops packages
-  - [Sienna Documentation Hub](https://nrel-sienna.github.io/Sienna/SiennaDocs/docs/build/index.html):
+  - [Sienna Documentation Hub](https://sienna-platform.github.io/Sienna/SiennaDocs/docs/build/index.html):
     Links to other Sienna packages' documentation

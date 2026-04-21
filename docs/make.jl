@@ -6,10 +6,10 @@ using DocumenterInterLinks
 using Literate
 
 # UPDATE FOR CURRENT MODULE NAME HERE
-const _DOCS_BASE_URL = "https://nrel-sienna.github.io/StorageSystemsSimulations.jl/stable"
+const _DOCS_BASE_URL = "https://sienna-platform.github.io/StorageSystemsSimulations.jl/stable"
 
 links = InterLinks(
-    "PowerSimulations" => "https://nrel-sienna.github.io/PowerSimulations.jl/stable/",
+    "PowerSimulations" => "https://sienna-platform.github.io/PowerSimulations.jl/stable/",
 )
 
 include(joinpath(@__DIR__, "make_tutorials.jl"))
@@ -45,7 +45,7 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/NREL-Sienna/StorageSystemsSimulations.jl.git",
+    repo="github.com/Sienna-Platform/StorageSystemsSimulations.jl.git",
     target="build",
     branch="gh-pages",
     devbranch="main",
